@@ -8,7 +8,9 @@ namespace StarterAssets
 
         public void Interact(PlayerHide player)
         {
-            Debug.Log("HideSpot -> Interact");
+            if (player == null)
+                return;
+
             player.ToggleHide(hidePoint);
         }
     }

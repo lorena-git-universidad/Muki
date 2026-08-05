@@ -5,68 +5,93 @@ namespace StarterAssets
 {
     public class PlayerHide : MonoBehaviour
     {
-        public bool IsHidden;
+        [Header("References")]
+        public CharacterController controller;
+        public FirstPersonController movement;
 
-        public MonoBehaviour movementScript;
-
-        private CharacterController controller;
-
-        private Vector3 exitPosition;
+        public bool IsHidden { get; private set; }
 
         private Transform currentHidePoint;
 
+        private Vector3 exitPosition;
+        private Quaternion exitRotation;
+
+        private int enterFrame;
+
         private void Awake()
         {
-            controller = GetComponent<CharacterController>();
+            if (controller == null)
+                controller = GetComponent<CharacterController>();
+
+            if (movement == null)
+                movement = GetComponent<FirstPersonController>();
         }
 
-        void Update()
+        private void Update()
         {
-            if (IsHidden && Keyboard.current.eKey.wasPressedThisFrame)
+            if (!IsHidden)
+                return;
+
+            // Evita salir el mismo frame en el que entró
+            if (Time.frameCount <= enterFrame)
+                return;
+
+            if (Keyboard.current != null &&
+                Keyboard.current.eKey.wasPressedThisFrame)
             {
                 ExitHide();
             }
         }
+
         public void ToggleHide(Transform hidePoint)
         {
-            Debug.Log("ToggleHide llamado");
-            if (!IsHidden)
+            if (IsHidden)
+            {
+                ExitHide();
+            }
+            else
             {
                 EnterHide(hidePoint);
             }
-            
         }
 
-        void EnterHide(Transform hidePoint)
+        private void EnterHide(Transform hidePoint)
         {
-            Debug.Log("Entrando al escondite");
-            IsHidden = true;
-
             currentHidePoint = hidePoint;
 
             exitPosition = transform.position;
+            exitRotation = transform.rotation;
 
+            IsHidden = true;
+
+            enterFrame = Time.frameCount;
+
+            // Desactivar el controller para mover libremente
             controller.enabled = false;
 
-            transform.position = hidePoint.position;
-            transform.rotation = hidePoint.rotation;
+            // Mover exactamente al HidePoint
+            transform.SetPositionAndRotation(
+                hidePoint.position,
+                hidePoint.rotation);
 
-            controller.enabled = true;
-
-            movementScript.enabled = false;
+            // Desactivar movimiento
+            movement.enabled = false;
         }
 
-        void ExitHide()
+        private void ExitHide()
         {
             IsHidden = false;
 
-            controller.enabled = false;
-
-            transform.position = exitPosition;
+            // Volver al sitio donde estaba
+            transform.SetPositionAndRotation(
+                exitPosition,
+                exitRotation);
 
             controller.enabled = true;
 
-            movementScript.enabled = true;
+            movement.enabled = true;
+
+            currentHidePoint = null;
         }
     }
 }

@@ -35,8 +35,8 @@
                 },
                 {
                     "name": "Crouch",
-                    "type": "Button",
-                    "id": "46980862-3e8b-4b41-b99c-42901f015d8c",
+                    "type": "PassThrough",
+                    "id": "35278ff9-baf5-40fe-8f2c-216545d18610",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -200,7 +200,7 @@
                 },
                 {
                     "name": "",
-                    "id": "65a6c6a6-54e5-499a-89b9-6f13f6d00774",
+                    "id": "d0598364-0edc-4fef-a570-39adde55e979",
                     "path": "<Keyboard>/c",
                     "interactions": "",
                     "processors": "",

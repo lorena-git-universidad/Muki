@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -160,9 +160,13 @@ namespace StarterAssets
             {
                 targetSpeed = MoveSpeed * 0.5f;
             }
+            else if (_input.sprint)
+            {
+                targetSpeed = SprintSpeed;
+            }
             else
             {
-                targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+                targetSpeed = MoveSpeed;
             }
 
             // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon

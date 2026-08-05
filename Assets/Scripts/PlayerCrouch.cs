@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem.EnhancedTouch;
 
 namespace StarterAssets
 {
@@ -7,18 +6,26 @@ namespace StarterAssets
     public class PlayerCrouch : MonoBehaviour
     {
         [Header("References")]
-        public StarterAssetsInputs input;
         public CharacterController controller;
+        public StarterAssetsInputs input;
         public Transform cameraTarget;
 
-        [Header("Crouch Settings")]
+        [Header("Heights")]
         public float standingHeight = 2f;
         public float crouchingHeight = 1f;
 
+        [Header("Camera")]
         public float standingCameraY = 0.9f;
         public float crouchingCameraY = 0.45f;
 
-        public float crouchSpeed = 8f;
+        [Header("Smooth")]
+        public float crouchSpeed = 10f;
+
+        private Vector3 originalCenter;
+        private float currentVelocityHeight;
+        private float currentVelocityCamera;
+
+        public bool IsCrouching => input != null && input.crouch;
 
         private void Awake()
         {
@@ -27,33 +34,43 @@ namespace StarterAssets
 
             if (input == null)
                 input = GetComponent<StarterAssetsInputs>();
-        }
-        
-        void Update()
-        {
-            Debug.Log(input.crouch);
-            bool isCrouching = UnityEngine.InputSystem.Keyboard.current.cKey.isPressed;
 
-            float targetHeight = isCrouching ? crouchingHeight : standingHeight;
-            float targetY = isCrouching ? crouchingCameraY : standingCameraY; 
-            controller.height = Mathf.Lerp(
+            originalCenter = controller.center;
+        }
+
+        private void Update()
+        {
+            if (controller == null || input == null)
+                return;
+
+            Debug.Log(input.crouch);
+
+            float targetHeight = input.crouch ? crouchingHeight : standingHeight;
+
+            controller.height = Mathf.SmoothDamp(
                 controller.height,
                 targetHeight,
-                Time.deltaTime * crouchSpeed);
+                ref currentVelocityHeight,
+                1f / crouchSpeed);
 
             controller.center = new Vector3(
-                0,
-                controller.height / 2f,
-                0);
+                originalCenter.x,
+                originalCenter.y - ((standingHeight - controller.height) * 0.5f),
+                originalCenter.z);
 
             if (cameraTarget != null)
             {
+                float targetCameraY = input.crouch
+                    ? crouchingCameraY
+                    : standingCameraY;
+
                 Vector3 pos = cameraTarget.localPosition;
 
-                    pos.y = Mathf.Lerp(
+                pos.y = Mathf.SmoothDamp(
                     pos.y,
-                    targetY,
-                    Time.deltaTime * crouchSpeed);
+                    targetCameraY,
+                    ref currentVelocityCamera,
+                    1f / crouchSpeed);
 
                 cameraTarget.localPosition = pos;
             }
