@@ -8,6 +8,7 @@ namespace StarterAssets
         public float requiredMiningTime = 5f;
 
         [Header("Drops")]
+        public ItemData droppedItem;
         public GameObject miniRockPrefab;
         public int miniRocksToSpawn = 4;
         public float spawnRadius = 0.4f;
@@ -48,8 +49,25 @@ namespace StarterAssets
                     Vector3.up * 0.4f +
                     Random.insideUnitSphere * spawnRadius;
 
-                GameObject rock =
-                    Instantiate(miniRockPrefab, spawnPos, Random.rotation);
+                GameObject rock = Instantiate(
+                    miniRockPrefab,
+                    spawnPos,
+                    Random.rotation);
+
+                //--------------------------------------------------
+                // Asignar el ItemData al recolectable
+                //--------------------------------------------------
+
+                CollectibleRock collectible = rock.GetComponent<CollectibleRock>();
+
+                if (collectible != null)
+                {
+                    collectible.itemData = droppedItem;
+                }
+
+                //--------------------------------------------------
+                // Física de caída
+                //--------------------------------------------------
 
                 Rigidbody rb = rock.GetComponent<Rigidbody>();
 

@@ -107,6 +107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.MineableRock
   requiredMiningTime: 5
+  droppedItem: {fileID: 11400000, guid: 6e071224c9f851442877b30d0b0eecc2, type: 2}
   miniRockPrefab: {fileID: 9164951436819565103, guid: 134a5365f7965234884fa73628506b95, type: 3}
   miniRocksToSpawn: 4
   spawnRadius: 0.4
