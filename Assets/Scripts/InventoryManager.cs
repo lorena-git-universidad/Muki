@@ -14,8 +14,9 @@ namespace StarterAssets
         [Header("Inventory")]
         public int slotCount = 36;
 
+        public List<InventoryItem> items = new();
+
         private readonly List<InventorySlot> slots = new();
-        private readonly List<InventoryItem> items = new();
 
         private void Awake()
         {
@@ -31,85 +32,76 @@ namespace StarterAssets
         {
             for (int i = 0; i < slotCount; i++)
             {
-                GameObject slot = Instantiate(slotPrefab, slotParent);
+                GameObject slotObj = Instantiate(slotPrefab, slotParent);
 
-                InventorySlot inventorySlot = slot.GetComponent<InventorySlot>();
+                InventorySlot slot = slotObj.GetComponent<InventorySlot>();
+                slot.slotIndex = i;
 
-                inventorySlot.Clear();
+                slot.Clear();
 
-                slots.Add(inventorySlot);
-
-                // cada slot empieza vacío
+                slots.Add(slot);
                 items.Add(null);
             }
         }
 
-        //--------------------------------------------------
-        // AGREGA UN OBJETO AL INVENTARIO
-        //--------------------------------------------------
-
-        public bool AddItem(ItemData itemData)
+        public bool AddItem(ItemData item, int amount = 1)
         {
-            if (itemData == null)
-            {
-                Debug.LogWarning("ItemData es NULL.");
-                return false;
-            }
-
             // Buscar stack existente
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i] == null)
-                    continue;
-
-                if (items[i].item == itemData &&
-                    items[i].amount < itemData.maxStack)
+                if (items[i] != null &&
+                    items[i].item == item &&
+                    items[i].amount < item.maxStack)
                 {
-                    items[i].amount++;
-
-                    UpdateUI();
-
+                    items[i].amount += amount;
+                    RefreshSlot(i);
                     return true;
                 }
             }
 
-            // Buscar slot vacío
+            // Buscar espacio vacío
             for (int i = 0; i < items.Count; i++)
             {
                 if (items[i] == null)
                 {
-                    items[i] = new InventoryItem(itemData, 1);
-
-                    UpdateUI();
-
+                    items[i] = new InventoryItem(item, amount);
+                    RefreshSlot(i);
                     return true;
                 }
             }
 
             Debug.Log("Inventario lleno.");
-
             return false;
         }
 
-        //--------------------------------------------------
-        // ACTUALIZA LA UI
-        //--------------------------------------------------
-
-        private void UpdateUI()
+        public InventoryItem GetItem(int index)
         {
-            for (int i = 0; i < slots.Count; i++)
-            {
-                if (items[i] == null)
-                {
-                    slots[i].Clear();
-                }
-                else
-                {
-                    slots[i].SetItem(
-                        items[i].item.icon,
-                        items[i].amount);
-                }
-            }
+            return items[index];
+        }
+
+        public void SetItem(int index, InventoryItem item)
+        {
+            items[index] = item;
+            RefreshSlot(index);
+        }
+
+        public void MoveItem(int from, int to)
+        {
+            InventoryItem moving = items[from];
+
+            items[from] = items[to];
+            items[to] = moving;
+
+            RefreshSlot(from);
+            RefreshSlot(to);
+        }
+
+        public void RefreshSlot(int index)
+        {
+            if (items[index] == null)
+                slots[index].Clear();
+            else
+                slots[index].SetItem(items[index]);
         }
     }
 }

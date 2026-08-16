@@ -8,12 +8,21 @@ namespace StarterAssets
         [Header("UI")]
         public GameObject inventoryPanel;
 
+        [Header("Player")]
+        public FirstPersonController firstPersonController;
+        public PlayerInput playerInput;
+
         private bool isOpen = false;
 
         private void Start()
         {
-            if (inventoryPanel != null)
-                inventoryPanel.SetActive(false);
+            inventoryPanel.SetActive(false);
+
+            if (firstPersonController == null)
+                firstPersonController = FindFirstObjectByType<FirstPersonController>();
+
+            if (playerInput == null)
+                playerInput = FindFirstObjectByType<PlayerInput>();
         }
 
         private void Update()
@@ -33,7 +42,13 @@ namespace StarterAssets
 
             inventoryPanel.SetActive(isOpen);
 
-            Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
+            if (firstPersonController != null)
+                firstPersonController.enabled = !isOpen;
+
+            Cursor.lockState = isOpen
+                ? CursorLockMode.None
+                : CursorLockMode.Locked;
+
             Cursor.visible = isOpen;
         }
     }

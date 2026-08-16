@@ -12,6 +12,9 @@ public class ItemData : ScriptableObject
     [Header("Visual")]
     public Sprite icon;
 
+    [Header("World")]
+    public GameObject worldPrefab;
+
     [Header("Inventory")]
     public int maxStack = 64;
 }
