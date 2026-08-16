@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2402612868803307251}
   - component: {fileID: -3241248792914713891}
   m_Layer: 8
-  m_Name: OfferingPrefab
+  m_Name: ofrenda prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

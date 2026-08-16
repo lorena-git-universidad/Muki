@@ -103,5 +103,50 @@ namespace StarterAssets
             else
                 slots[index].SetItem(items[index]);
         }
+
+        public int RemoveMinerals(int amountToRemove)
+        {
+            if (amountToRemove <= 0)
+                return 0;
+
+            int remaining = amountToRemove;
+            int removed = 0;
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (items[i] == null)
+                    continue;
+
+                InventoryItem inventoryItem = items[i];
+
+                if (inventoryItem.item == null)
+                    continue;
+
+                int amountInSlot = inventoryItem.amount;
+
+                if (amountInSlot <= remaining)
+                {
+                    removed += amountInSlot;
+                    remaining -= amountInSlot;
+
+                    items[i] = null;
+                    RefreshSlot(i);
+                }
+                else
+                {
+                    inventoryItem.amount -= remaining;
+
+                    removed += remaining;
+                    remaining = 0;
+
+                    RefreshSlot(i);
+                }
+
+                if (remaining <= 0)
+                    break;
+            }
+
+            return removed;
+        }
     }
 }
