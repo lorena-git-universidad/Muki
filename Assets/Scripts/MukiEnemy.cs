@@ -10,7 +10,8 @@ namespace StarterAssets
             Patrolling,
             Chasing,
             Searching,
-            Calmed
+            Calmed,
+            InvestigatingNoise,
         }
 
         [Header("References")]
@@ -53,7 +54,105 @@ namespace StarterAssets
         private int currentPatrolPoint;
         private float patrolTimer;
         private float searchTimer;
+        private bool investigatingNoise;
+        private Transform noisePatrolPoint;
 
+        public void HearNoise(
+        Vector3 noisePosition,
+        float noiseRadius,
+        string noiseType)
+        {
+            if (IsAnyAltarActive())
+            {
+                Debug.Log(
+                    "Muki ignoró el ruido porque hay un altar activo."
+                );
+
+                return;
+            }
+
+            if (playerHide != null &&
+                playerHide.IsHidden)
+            {
+                Debug.Log(
+                    "Muki ignoró el ruido porque el jugador está escondido."
+                );
+
+                return;
+            }
+
+            Transform patrolPoint =
+                GetPatrolPointInsideNoise(
+                    noisePosition,
+                    noiseRadius
+                );
+
+            if (patrolPoint == null)
+            {
+                Debug.Log(
+                    $"Muki escuchó {noiseType}, " +
+                    $"pero no hay patrol points dentro del radio."
+                );
+
+                return;
+            }
+
+            investigatingNoise = true;
+
+            currentState = EnemyState.Patrolling;
+
+            agent.speed = patrolSpeed;
+
+            agent.SetDestination(
+                patrolPoint.position
+            );
+
+            Debug.Log(
+                $"<color=red>MUKI ESCUCHÓ:</color> " +
+                $"{noiseType} ? " +
+                $"Investigando {patrolPoint.name}"
+            );
+        }
+
+        private Transform GetPatrolPointInsideNoise(
+    Vector3 noisePosition,
+    float noiseRadius)
+        {
+            if (patrolPoints == null ||
+                patrolPoints.Length == 0)
+                return null;
+
+            Transform[] validPoints =
+                new Transform[patrolPoints.Length];
+
+            int validCount = 0;
+
+            foreach (Transform point in patrolPoints)
+            {
+                if (point == null)
+                    continue;
+
+                float distance =
+                    Vector3.Distance(
+                        point.position,
+                        noisePosition);
+
+                if (distance <= noiseRadius)
+                {
+                    validPoints[validCount] = point;
+                    validCount++;
+                }
+            }
+
+            if (validCount == 0)
+                return null;
+
+            // Elegir uno aleatoriamente
+            int randomIndex =
+                Random.Range(0, validCount);
+
+            return validPoints[randomIndex];
+        }
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
@@ -95,6 +194,8 @@ namespace StarterAssets
 
         private void Update()
         {
+
+
             if (player == null)
                 return;
 
@@ -140,6 +241,57 @@ namespace StarterAssets
                 case EnemyState.Calmed:
                     Calm();
                     break;
+
+                case EnemyState.InvestigatingNoise:
+                    InvestigateNoise();
+                    break;
+            }
+        }
+
+        private void InvestigateNoise()
+        {
+            if (IsAnyAltarActive())
+            {
+                StartCalmed();
+                return;
+            }
+
+            if (IsPlayerDetectable())
+            {
+                float distance =
+                    Vector3.Distance(
+                        transform.position,
+                        player.position
+                    );
+
+                if (distance <= detectionRange)
+                {
+                    StartChasing();
+                    return;
+                }
+            }
+
+            if (noisePatrolPoint == null)
+            {
+                currentState = EnemyState.Patrolling;
+                GoToNextPatrolPoint();
+                return;
+            }
+
+            if (!agent.pathPending &&
+                agent.remainingDistance <= agent.stoppingDistance)
+            {
+                Debug.Log(
+                    "Muki llegó al lugar donde escuchó el ruido."
+                );
+
+                noisePatrolPoint = null;
+
+                currentState = EnemyState.Patrolling;
+
+                patrolTimer = 0f;
+
+                GoToNextPatrolPoint();
             }
         }
 
@@ -435,5 +587,9 @@ namespace StarterAssets
 
             return true;
         }
+
+
     }
+
+
 }

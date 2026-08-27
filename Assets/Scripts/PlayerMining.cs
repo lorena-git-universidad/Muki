@@ -33,6 +33,8 @@ namespace StarterAssets
         private float swingTimer;
         private bool isMining;
 
+        public bool IsMining => isMining;
+
         private MineableRock currentRock;
 
         private void Awake()
