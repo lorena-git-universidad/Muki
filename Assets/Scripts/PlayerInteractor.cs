@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -20,6 +21,12 @@ namespace StarterAssets
         private PlayerHide playerHide;
         private PlayerMining playerMining;
 
+        // ==========================================
+        // MANO IZQUIERDA
+        // ==========================================
+
+        private Animator leftHandAnimator;
+
         private void Awake()
         {
             playerHide = GetComponent<PlayerHide>();
@@ -34,17 +41,49 @@ namespace StarterAssets
 
             if (playerCamera == null)
             {
-                playerCamera = GetComponentInChildren<Camera>();
+                playerCamera =
+                    GetComponentInChildren<Camera>();
 
                 if (playerCamera == null)
                     playerCamera = Camera.main;
             }
 
-            // Buscar automáticamente OfferingHolder
-            if (offeringHolder == null && playerCamera != null)
+            // ==========================================
+            // BUSCAR OFFERING HOLDER
+            // ==========================================
+
+            if (offeringHolder == null &&
+                playerCamera != null)
             {
                 offeringHolder =
-                    playerCamera.transform.Find("OfferingHolder");
+                    playerCamera.transform.Find(
+                        "LeftHandPoint"
+                    );
+            }
+
+            // ==========================================
+            // BUSCAR MANO IZQUIERDA
+            // ==========================================
+
+            if (offeringHolder != null)
+            {
+                Transform leftHand =
+                    offeringHolder.Find(
+                        "ManoIzquierda"
+                    );
+
+                if (leftHand != null)
+                {
+                    leftHandAnimator =
+                        leftHand.GetComponent<Animator>();
+                }
+            }
+
+            if (leftHandAnimator == null)
+            {
+                Debug.LogWarning(
+                    "No se encontró el Animator de ManoIzquierda."
+                );
             }
         }
 
@@ -57,7 +96,8 @@ namespace StarterAssets
             // NO TOCAR - ESCONDITE
             // ==========================================
 
-            if (playerHide != null && playerHide.IsHidden)
+            if (playerHide != null &&
+                playerHide.IsHidden)
                 return;
 
             if (Keyboard.current == null)
@@ -100,9 +140,22 @@ namespace StarterAssets
             {
                 if (!playerMining.hasPickaxe)
                 {
-                    playerMining.TryEquipPickaxe(
-                        pickaxe.gameObject
-                    );
+                    bool equipped =
+                        playerMining.TryEquipPickaxe(
+                            pickaxe.gameObject
+                        );
+
+                    // ==========================================
+                    // REPRODUCIR ANIMACIÓN DE AGARRAR
+                    // ==========================================
+
+                    if (equipped &&
+                        playerMining.PickaxeAnimator != null)
+                    {
+                        playerMining.PickaxeAnimator.Play(
+                            "agarre_manoDer"
+                        );
+                    }
                 }
 
                 return;
@@ -121,12 +174,13 @@ namespace StarterAssets
                     hit.collider.GetComponentInParent<OfferingItem>();
             }
 
-            if (offering != null && heldOffering == null)
+            if (offering != null &&
+                heldOffering == null)
             {
                 if (offeringHolder == null)
                 {
                     Debug.LogError(
-                        "No se encontró OfferingHolder."
+                        "No se encontró LeftHandPoint."
                     );
 
                     return;
@@ -134,7 +188,13 @@ namespace StarterAssets
 
                 heldOffering = offering;
 
+                // Recoger físicamente la ofrenda
                 offering.PickUp(offeringHolder);
+
+                // Reproducir animación correspondiente
+                PlayOfferingGrabAnimation(
+                    offering.offeringName
+                );
 
                 return;
             }
@@ -157,10 +217,15 @@ namespace StarterAssets
                 if (heldOffering != null)
                 {
                     bool placed =
-                        altar.PlaceOffering(heldOffering);
+                        altar.PlaceOffering(
+                            heldOffering
+                        );
 
                     if (placed)
                     {
+                        // Animación de soltar
+                        PlayOfferingReleaseAnimation();
+
                         heldOffering = null;
                     }
                 }
@@ -182,7 +247,8 @@ namespace StarterAssets
                     hit.collider.GetComponentInChildren<HideSpot>();
             }
 
-            if (hideSpot != null && playerHide != null)
+            if (hideSpot != null &&
+                playerHide != null)
             {
                 Debug.Log(
                     "Interactuando con HideSpot"
@@ -193,5 +259,68 @@ namespace StarterAssets
                 return;
             }
         }
+
+        // ==========================================
+        // ANIMACIÓN DE AGARRE
+        // ==========================================
+
+        private void PlayOfferingGrabAnimation(
+            string offeringName
+        )
+        {
+            if (leftHandAnimator == null)
+                return;
+
+            switch (offeringName)
+            {
+                case "Alcohol":
+
+                    leftHandAnimator.Play(
+                        "agarreAlcohol_manoIzq"
+                    );
+
+                    break;
+
+                case "Coca":
+
+                    leftHandAnimator.Play(
+                        "agarreCoca_manoIzq"
+                    );
+
+                    break;
+
+                case "Tabaco":
+
+                    leftHandAnimator.Play(
+                        "agarreTabaco_manoIzq"
+                    );
+
+                    break;
+
+                default:
+
+                    Debug.LogWarning(
+                        "No existe animación para la ofrenda: " +
+                        offeringName
+                    );
+
+                    break;
+            }
+        }
+
+        // ==========================================
+        // ANIMACIÓN DE SOLTAR
+        // ==========================================
+
+        private void PlayOfferingReleaseAnimation()
+        {
+            if (leftHandAnimator == null)
+                return;
+
+            leftHandAnimator.Play(
+                "soltar_manoIzq"
+            );
+        }
     }
 }
+

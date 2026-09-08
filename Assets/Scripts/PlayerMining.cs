@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace StarterAssets
 {
@@ -49,7 +48,8 @@ namespace StarterAssets
 
             if (pickaxeHolder == null && playerCamera != null)
             {
-                pickaxeHolder = playerCamera.transform.Find("PickaxeHolder");
+                pickaxeHolder =
+                    playerCamera.transform.Find("PickaxeHolder");
             }
         }
 
@@ -65,7 +65,8 @@ namespace StarterAssets
         {
             Ray ray = new Ray(
                 playerCamera.transform.position,
-                playerCamera.transform.forward);
+                playerCamera.transform.forward
+            );
 
             if (!Physics.Raycast(
                     ray,
@@ -77,7 +78,8 @@ namespace StarterAssets
                 return;
             }
 
-            MineableRock rock = hit.collider.GetComponentInParent<MineableRock>();
+            MineableRock rock =
+                hit.collider.GetComponentInParent<MineableRock>();
 
             if (rock == null)
             {
@@ -85,8 +87,8 @@ namespace StarterAssets
                 return;
             }
 
-            if (Keyboard.current == null ||
-                !Keyboard.current.eKey.isPressed)
+            if (UnityEngine.InputSystem.Keyboard.current == null ||
+                !UnityEngine.InputSystem.Keyboard.current.eKey.isPressed)
             {
                 StopMining();
                 return;
@@ -97,7 +99,8 @@ namespace StarterAssets
 
             AnimatePickaxe();
 
-            bool finished = currentRock.Mine(Time.deltaTime);
+            bool finished =
+                currentRock.Mine(Time.deltaTime);
 
             if (finished)
             {
@@ -128,7 +131,9 @@ namespace StarterAssets
 
             if (pickaxeHolder == null)
             {
-                Debug.LogError("No se encontró PickaxeHolder.");
+                Debug.LogError(
+                    "No se encontró PickaxeHolder."
+                );
 
                 return false;
             }
@@ -136,14 +141,20 @@ namespace StarterAssets
             equippedPickaxe = pickaxeObject;
             hasPickaxe = true;
 
-            Collider[] cols = equippedPickaxe.GetComponentsInChildren<Collider>();
+            // ==========================================
+            // DESACTIVAR FÍSICA DEL PICO
+            // ==========================================
+
+            Collider[] cols =
+                equippedPickaxe.GetComponentsInChildren<Collider>();
 
             foreach (Collider c in cols)
             {
                 c.enabled = false;
             }
 
-            Rigidbody rb = equippedPickaxe.GetComponent<Rigidbody>();
+            Rigidbody rb =
+                equippedPickaxe.GetComponent<Rigidbody>();
 
             if (rb != null)
             {
@@ -151,36 +162,94 @@ namespace StarterAssets
                 rb.useGravity = false;
             }
 
-            equippedPickaxe.layer = LayerMask.NameToLayer("Ignore Raycast");
+            // ==========================================
+            // IGNORAR RAYCAST
+            // ==========================================
 
-            equippedPickaxe.transform.SetParent(pickaxeHolder);
+            equippedPickaxe.layer =
+                LayerMask.NameToLayer("Ignore Raycast");
 
-            equippedPickaxe.transform.localPosition = equippedPosition;
-            equippedPickaxe.transform.localRotation = Quaternion.Euler(equippedRotation);
+            // ==========================================
+            // PASAR A LA CÁMARA
+            // ==========================================
 
-            basePosition = equippedPickaxe.transform.localPosition;
-            baseRotation = equippedPickaxe.transform.localRotation;
+            equippedPickaxe.transform.SetParent(
+                pickaxeHolder
+            );
 
-            Debug.Log("Pico equipado.");
+            equippedPickaxe.transform.localPosition =
+                equippedPosition;
+
+            equippedPickaxe.transform.localRotation =
+                Quaternion.Euler(equippedRotation);
+
+            basePosition =
+                equippedPickaxe.transform.localPosition;
+
+            baseRotation =
+                equippedPickaxe.transform.localRotation;
+
+            // ==========================================
+            // HACER INVISIBLE EL PICO FÍSICO
+            // ==========================================
+
+            SetPickaxeVisible(false);
+
+            Debug.Log(
+                "Pico equipado. Pico físico oculto."
+            );
 
             return true;
         }
+
+        // ==========================================
+        // MOSTRAR / OCULTAR PICO FÍSICO
+        // ==========================================
+
+        public void SetPickaxeVisible(bool visible)
+        {
+            if (equippedPickaxe == null)
+                return;
+
+            SpriteRenderer[] sprites =
+                equippedPickaxe.GetComponentsInChildren<SpriteRenderer>();
+
+            foreach (SpriteRenderer sprite in sprites)
+            {
+                sprite.enabled = visible;
+            }
+        }
+
+        // ==========================================
+        // ANIMACIÓN DE MINADO ACTUAL
+        // ==========================================
 
         private void AnimatePickaxe()
         {
             if (equippedPickaxe == null)
                 return;
 
-            swingTimer += Time.deltaTime * swingSpeed;
+            swingTimer +=
+                Time.deltaTime * swingSpeed;
 
-            float angle = Mathf.Sin(swingTimer) * swingAngle;
+            float angle =
+                Mathf.Sin(swingTimer) * swingAngle;
 
             equippedPickaxe.transform.localRotation =
-                baseRotation * Quaternion.Euler(-angle, 0f, -angle * 0.5f);
+                baseRotation *
+                Quaternion.Euler(
+                    -angle,
+                    0f,
+                    -angle * 0.5f
+                );
 
             equippedPickaxe.transform.localPosition =
                 basePosition +
-                new Vector3(0f, 0f, Mathf.Sin(swingTimer) * 0.08f);
+                new Vector3(
+                    0f,
+                    0f,
+                    Mathf.Sin(swingTimer) * 0.08f
+                );
         }
 
         private void ResetPickaxe()
@@ -190,8 +259,26 @@ namespace StarterAssets
 
             swingTimer = 0f;
 
-            equippedPickaxe.transform.localPosition = basePosition;
-            equippedPickaxe.transform.localRotation = baseRotation;
+            equippedPickaxe.transform.localPosition =
+                basePosition;
+
+            equippedPickaxe.transform.localRotation =
+                baseRotation;
+        }
+
+        // ==========================================
+        // ANIMATOR DEL PICO
+        // ==========================================
+
+        public Animator PickaxeAnimator
+        {
+            get
+            {
+                if (pickaxeHolder == null)
+                    return null;
+
+                return pickaxeHolder.GetComponentInChildren<Animator>();
+            }
         }
     }
 }

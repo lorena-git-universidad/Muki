@@ -19,12 +19,17 @@ namespace StarterAssets
 
         private Vector3 originalScale;
 
+        private SpriteRenderer[] spriteRenderers;
+
         private void Awake()
         {
             colliders = GetComponentsInChildren<Collider>();
             rb = GetComponent<Rigidbody>();
 
             originalScale = transform.localScale;
+
+            spriteRenderers =
+                GetComponentsInChildren<SpriteRenderer>();
         }
 
         public void PickUp(Transform holder)
@@ -45,6 +50,9 @@ namespace StarterAssets
                 rb.useGravity = false;
             }
 
+            // Ocultar la ofrenda física.
+            SetVisible(false);
+
             transform.SetParent(holder, false);
 
             // Mantener escala original del prefab
@@ -64,21 +72,46 @@ namespace StarterAssets
         {
             if (altarPoint == null)
             {
-                Debug.LogError("No hay OfferingPoint en el altar.");
+                Debug.LogError(
+                    "No hay OfferingPoint en el altar."
+                );
+
                 return;
             }
 
             isBeingHeld = false;
 
-            transform.SetParent(altarPoint, false);
+            transform.SetParent(
+                altarPoint,
+                false
+            );
 
             // Mantener escala original
             transform.localScale = originalScale;
 
             transform.localPosition = Vector3.zero;
-            transform.localRotation = Quaternion.identity;
+            transform.localRotation =
+                Quaternion.identity;
 
-            Debug.Log("Ofrenda colocada en el altar.");
+            // Volver a mostrar la ofrenda física.
+            SetVisible(true);
+
+            Debug.Log(
+                "Ofrenda colocada en el altar."
+            );
+        }
+
+        public void SetVisible(bool visible)
+        {
+            if (spriteRenderers == null)
+                return;
+
+            foreach (SpriteRenderer sprite in spriteRenderers)
+            {
+                if (sprite != null)
+                    sprite.enabled = visible;
+            }
         }
     }
 }
+
