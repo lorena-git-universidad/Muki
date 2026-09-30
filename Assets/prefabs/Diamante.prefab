@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1225714616753092436
+--- !u!1 &311627271956914540
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,48 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6126034781167111345}
-  - component: {fileID: 2362043320195830393}
-  - component: {fileID: 7046798315489774583}
-  - component: {fileID: 7134816156963417085}
-  - component: {fileID: 1619309528815847716}
+  - component: {fileID: 7570190090188716937}
+  - component: {fileID: 6580909009791337575}
+  - component: {fileID: 1147267091101574672}
+  - component: {fileID: 4078573057148653342}
+  - component: {fileID: 4981823013560007024}
   m_Layer: 7
-  m_Name: Piedra
+  m_Name: Diamante
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6126034781167111345
+--- !u!4 &7570190090188716937
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
+  m_GameObject: {fileID: 311627271956914540}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.70710677, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 37.679, y: -0.33, z: 4.745}
-  m_LocalScale: {x: 0.1939, y: 0.27146, z: 0.1939}
+  m_LocalRotation: {x: 0.7071069, y: 0, z: -0, w: 0.7071067}
+  m_LocalPosition: {x: 37.848, y: -0.003, z: 5.349}
+  m_LocalScale: {x: 0.03618522, y: 0.03618522, z: 0.03618522}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2362043320195830393
+--- !u!33 &6580909009791337575
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
-  m_Mesh: {fileID: 8385836491182413749, guid: 968dce0d2368c184790b3dc997d63495, type: 3}
---- !u!23 &7046798315489774583
+  m_GameObject: {fileID: 311627271956914540}
+  m_Mesh: {fileID: 8552134717624371188, guid: 968dce0d2368c184790b3dc997d63495, type: 3}
+--- !u!23 &1147267091101574672
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
+  m_GameObject: {fileID: 311627271956914540}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: eb363939b3250704b80dce781c9f114d, type: 2}
+  - {fileID: 2100000, guid: 2bdac07577db82141a31e2e258944233, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -92,13 +92,31 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &7134816156963417085
+--- !u!114 &4078573057148653342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 311627271956914540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 360f66b81e5e0064991d652c9fdb7be2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.MineableRock
+  requiredMiningTime: 5
+  droppedItem: {fileID: 11400000, guid: b47cc51a360c0b541b7bdb354ee53ea3, type: 2}
+  miniRockPrefab: {fileID: 7372791160130373756, guid: e03b3849ac65f294cb118d67d690478f, type: 3}
+  miniRocksToSpawn: 4
+  spawnRadius: 0.4
+  spawnForce: 3
+--- !u!64 &4981823013560007024
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
+  m_GameObject: {fileID: 311627271956914540}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -113,22 +131,4 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: 8385836491182413749, guid: 968dce0d2368c184790b3dc997d63495, type: 3}
---- !u!114 &1619309528815847716
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 360f66b81e5e0064991d652c9fdb7be2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.MineableRock
-  requiredMiningTime: 5
-  droppedItem: {fileID: 11400000, guid: 6e071224c9f851442877b30d0b0eecc2, type: 2}
-  miniRockPrefab: {fileID: 8310580381681273844, guid: d8485d21f8e4c1e4d8c99b6e6a9ca0ea, type: 3}
-  miniRocksToSpawn: 4
-  spawnRadius: 0.4
-  spawnForce: 3
+  m_Mesh: {fileID: 8552134717624371188, guid: 968dce0d2368c184790b3dc997d63495, type: 3}

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1225714616753092436
+--- !u!1 &8310580381681273844
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,49 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6126034781167111345}
-  - component: {fileID: 2362043320195830393}
-  - component: {fileID: 7046798315489774583}
-  - component: {fileID: 7134816156963417085}
-  - component: {fileID: 1619309528815847716}
-  m_Layer: 7
-  m_Name: Piedra
+  - component: {fileID: 3093245023065485945}
+  - component: {fileID: 7527787996531907420}
+  - component: {fileID: 4960900667266423239}
+  - component: {fileID: 6783342659430320022}
+  - component: {fileID: 290158619915820828}
+  - component: {fileID: 8669258122690816380}
+  m_Layer: 0
+  m_Name: PiedraSmall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6126034781167111345
+--- !u!4 &3093245023065485945
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
+  m_GameObject: {fileID: 8310580381681273844}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.70710677, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 37.679, y: -0.33, z: 4.745}
-  m_LocalScale: {x: 0.1939, y: 0.27146, z: 0.1939}
+  m_LocalPosition: {x: 38.158, y: -0.29451, z: 4.9134}
+  m_LocalScale: {x: 0.07940652, y: 0.07940652, z: 0.07940652}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2362043320195830393
+--- !u!33 &7527787996531907420
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
-  m_Mesh: {fileID: 8385836491182413749, guid: 968dce0d2368c184790b3dc997d63495, type: 3}
---- !u!23 &7046798315489774583
+  m_GameObject: {fileID: 8310580381681273844}
+  m_Mesh: {fileID: -2865104911859505335, guid: 968dce0d2368c184790b3dc997d63495, type: 3}
+--- !u!23 &4960900667266423239
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
+  m_GameObject: {fileID: 8310580381681273844}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -92,13 +93,13 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &7134816156963417085
+--- !u!64 &6783342659430320022
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
+  m_GameObject: {fileID: 8310580381681273844}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -113,22 +114,46 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: 8385836491182413749, guid: 968dce0d2368c184790b3dc997d63495, type: 3}
---- !u!114 &1619309528815847716
+  m_Mesh: {fileID: -2865104911859505335, guid: 968dce0d2368c184790b3dc997d63495, type: 3}
+--- !u!54 &290158619915820828
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8310580381681273844}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &8669258122690816380
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1225714616753092436}
+  m_GameObject: {fileID: 8310580381681273844}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 360f66b81e5e0064991d652c9fdb7be2, type: 3}
+  m_Script: {fileID: 11500000, guid: 30edbafe9b7a73e488638063782ef589, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.MineableRock
-  requiredMiningTime: 5
-  droppedItem: {fileID: 11400000, guid: 6e071224c9f851442877b30d0b0eecc2, type: 2}
-  miniRockPrefab: {fileID: 8310580381681273844, guid: d8485d21f8e4c1e4d8c99b6e6a9ca0ea, type: 3}
-  miniRocksToSpawn: 4
-  spawnRadius: 0.4
-  spawnForce: 3
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.CollectibleRock
+  rockName: Piedra
+  itemData: {fileID: 11400000, guid: 6e071224c9f851442877b30d0b0eecc2, type: 2}
+  pickupDelay: 0.5

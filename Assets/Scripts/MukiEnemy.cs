@@ -5,159 +5,157 @@ namespace StarterAssets
 {
     public class MukiEnemy : MonoBehaviour
     {
+        // =========================================================
+        // ESTADOS DEL MUKI
+        // =========================================================
+
         public enum EnemyState
         {
             Patrolling,
             Chasing,
             Searching,
             Calmed,
-            InvestigatingNoise,
+            InvestigatingNoise
         }
 
-        [Header("References")]
+        [Header("Estado actual")]
+        public EnemyState currentState = EnemyState.Patrolling;
+
+
+        // =========================================================
+        // REFERENCIAS
+        // =========================================================
+
+        [Header("Referencias")]
         public Transform player;
+        public NavMeshAgent agent;
         public PlayerHide playerHide;
 
-        [Header("Altars")]
-        public OfferingAltar[] altars;
 
-        [Header("Calmed State")]
-        public bool stopCompletelyWhenCalmed = true;
-        public float calmedSpeed = 0.5f;
+        // =========================================================
+        // PATRULLA
+        // =========================================================
 
-        [Header("Patrol")]
+        [Header("Patrulla")]
         public Transform[] patrolPoints;
+
+        public float patrolSpeed = 2.5f;
+
         public float patrolWaitTime = 2f;
 
-        [Header("Detection")]
+        private int currentPatrolIndex = 0;
+
+        private float patrolTimer = 0f;
+
+
+        // =========================================================
+        // DETECCIÓN DEL JUGADOR
+        // =========================================================
+
+        [Header("Detección")]
         public float detectionRange = 12f;
+
         public float losePlayerRange = 18f;
 
-        [Header("Chase")]
-        public float patrolSpeed = 2.5f;
+
+        // =========================================================
+        // PERSECUCIÓN
+        // =========================================================
+
+        [Header("Persecución")]
         public float chaseSpeed = 5f;
 
-        [Header("Search")]
+
+        // =========================================================
+        // ATAQUE
+        // =========================================================
+
+        [Header("Ataque")]
+        public float attackDistance = 1.5f;
+
+        public float attackCooldown = 2f;
+
+        private float attackTimer = 0f;
+
+
+        // =========================================================
+        // INVESTIGACIÓN
+        // =========================================================
+
+        [Header("Investigación de ruido")]
         public float searchTime = 3f;
 
-        [Header("Attack")]
-        public float attackDistance = 1.5f;
-        public float attackCooldown = 1f;
+        private float searchTimer = 0f;
 
-        private float attackTimer;
+        private bool investigatingNoise = false;
 
-        [Header("State")]
-        public EnemyState currentState;
-
-        private NavMeshAgent agent;
-
-        private int currentPatrolPoint;
-        private float patrolTimer;
-        private float searchTimer;
-        private bool investigatingNoise;
         private Transform noisePatrolPoint;
 
-        public void HearNoise(
-        Vector3 noisePosition,
-        float noiseRadius,
-        string noiseType)
-        {
-            if (IsAnyAltarActive())
-            {
-                Debug.Log(
-                    "Muki ignoró el ruido porque hay un altar activo."
-                );
 
-                return;
-            }
+        // =========================================================
+        // ALTARES
+        // =========================================================
 
-            if (playerHide != null &&
-                playerHide.IsHidden)
-            {
-                Debug.Log(
-                    "Muki ignoró el ruido porque el jugador está escondido."
-                );
+        [Header("Altares")]
+        public OfferingAltar[] altars;
 
-                return;
-            }
+        private Transform calmPatrolTarget;
 
-            Transform patrolPoint =
-                GetPatrolPointInsideNoise(
-                    noisePosition,
-                    noiseRadius
-                );
 
-            if (patrolPoint == null)
-            {
-                Debug.Log(
-                    $"Muki escuchó {noiseType}, " +
-                    $"pero no hay patrol points dentro del radio."
-                );
+        // =========================================================
+        // ZONAS SEGURAS PERMANENTES
+        // =========================================================
 
-                return;
-            }
+        [Header("Permanent Safe Zones")]
+        public MukiSafeZone[] safeZones;
 
-            investigatingNoise = true;
 
-            currentState = EnemyState.Patrolling;
+        // =========================================================
+        // AUDIO
+        // =========================================================
 
-            agent.speed = patrolSpeed;
+        [Header("AI Audio")]
+        public AudioClip investigationStartSound;
 
-            agent.SetDestination(
-                patrolPoint.position
-            );
+        public AudioClip investigationLoopSound;
 
-            Debug.Log(
-                $"<color=red>MUKI ESCUCHÓ:</color> " +
-                $"{noiseType} ? " +
-                $"Investigando {patrolPoint.name}"
-            );
-        }
+        public AudioClip chaseLaughSound;
 
-        private Transform GetPatrolPointInsideNoise(
-    Vector3 noisePosition,
-    float noiseRadius)
-        {
-            if (patrolPoints == null ||
-                patrolPoints.Length == 0)
-                return null;
+        private AudioSource oneShotAudio;
 
-            Transform[] validPoints =
-                new Transform[patrolPoints.Length];
+        private AudioSource stateLoopAudio;
 
-            int validCount = 0;
+        private EnemyState lastAudioState;
 
-            foreach (Transform point in patrolPoints)
-            {
-                if (point == null)
-                    continue;
+        private bool audioStateInitialized = false;
 
-                float distance =
-                    Vector3.Distance(
-                        point.position,
-                        noisePosition);
 
-                if (distance <= noiseRadius)
-                {
-                    validPoints[validCount] = point;
-                    validCount++;
-                }
-            }
+        // =========================================================
+        // AWAKE
+        // =========================================================
 
-            if (validCount == 0)
-                return null;
-
-            // Elegir uno aleatoriamente
-            int randomIndex =
-                Random.Range(0, validCount);
-
-            return validPoints[randomIndex];
-        }
         private void Awake()
         {
-            agent = GetComponent<NavMeshAgent>();
+            // -----------------------------------------------------
+            // NAVMESH AGENT
+            // -----------------------------------------------------
 
-            // Buscar jugador automáticamente
+            if (agent == null)
+                agent = GetComponent<NavMeshAgent>();
+
+
+            // -----------------------------------------------------
+            // PLAYER HIDE
+            // -----------------------------------------------------
+
+            if (playerHide == null)
+                playerHide = FindFirstObjectByType<PlayerHide>();
+
+
+            // -----------------------------------------------------
+            // PLAYER
+            // -----------------------------------------------------
+
             if (player == null)
             {
                 GameObject playerObject =
@@ -167,41 +165,109 @@ namespace StarterAssets
                     player = playerObject.transform;
             }
 
-            // Buscar PlayerHide
-            if (player != null && playerHide == null)
-            {
-                playerHide =
-                    player.GetComponent<PlayerHide>();
-            }
 
-            // Buscar altares automáticamente si no los asignamos
+            // -----------------------------------------------------
+            // ALTARES
+            // -----------------------------------------------------
+
             if (altars == null || altars.Length == 0)
             {
                 altars =
                     FindObjectsByType<OfferingAltar>(
-                        FindObjectsSortMode.None);
+                        FindObjectsSortMode.None
+                    );
             }
+
+
+            // -----------------------------------------------------
+            // ZONAS SEGURAS
+            // -----------------------------------------------------
+
+            if (safeZones == null || safeZones.Length == 0)
+            {
+                safeZones =
+                    FindObjectsByType<MukiSafeZone>(
+                        FindObjectsSortMode.None
+                    );
+            }
+
+
+            // =====================================================
+            // AUDIO ONE SHOT
+            // =====================================================
+
+            oneShotAudio =
+                gameObject.AddComponent<AudioSource>();
+
+            oneShotAudio.playOnAwake = false;
+
+            oneShotAudio.loop = false;
+
+            oneShotAudio.spatialBlend = 0f;
+
+
+            // =====================================================
+            // AUDIO LOOP
+            // =====================================================
+
+            stateLoopAudio =
+                gameObject.AddComponent<AudioSource>();
+
+            stateLoopAudio.playOnAwake = false;
+
+            stateLoopAudio.loop = true;
+
+            stateLoopAudio.spatialBlend = 0f;
         }
+
+
+        // =========================================================
+        // START
+        // =========================================================
 
         private void Start()
         {
-            currentState = EnemyState.Patrolling;
+            currentState =
+                EnemyState.Patrolling;
 
-            agent.speed = patrolSpeed;
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
 
             GoToNextPatrolPoint();
         }
 
+
+        // =========================================================
+        // UPDATE
+        // =========================================================
+
         private void Update()
         {
-
-
             if (player == null)
                 return;
 
-            // ==========================================
+
+            // -----------------------------------------------------
+            // AUDIO
+            // -----------------------------------------------------
+
+            UpdateStateAudio();
+
+
+            // -----------------------------------------------------
+            // ATTACK COOLDOWN
+            // -----------------------------------------------------
+
+            if (attackTimer > 0f)
+                attackTimer -= Time.deltaTime;
+
+
+            // =====================================================
             // ALTAR ACTIVO
-            // ==========================================
+            // =====================================================
 
             if (IsAnyAltarActive())
             {
@@ -211,188 +277,103 @@ namespace StarterAssets
                 }
 
                 Calm();
+
                 return;
             }
 
-            // ==========================================
-            // COMPORTAMIENTO NORMAL
-            // ==========================================
 
-            // Si estaba calmado y el altar terminó
-            if (currentState == EnemyState.Calmed)
-            {
-                EndCalmed();
-            }
+            // =====================================================
+            // ESTADOS
+            // =====================================================
 
             switch (currentState)
             {
                 case EnemyState.Patrolling:
+
                     Patrol();
+
                     break;
+
 
                 case EnemyState.Chasing:
+
                     ChasePlayer();
+
                     break;
+
 
                 case EnemyState.Searching:
+
                     Search();
+
                     break;
+
 
                 case EnemyState.Calmed:
-                    Calm();
+
+                    EndCalmed();
+
                     break;
 
+
                 case EnemyState.InvestigatingNoise:
+
                     InvestigateNoise();
+
                     break;
             }
         }
 
-        private void InvestigateNoise()
+
+        // =========================================================
+        // PATRULLA
+        // =========================================================
+
+        private void Patrol()
         {
-            if (IsAnyAltarActive())
-            {
-                StartCalmed();
-                return;
-            }
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
+
+
+            // -----------------------------------------------------
+            // DETECTAR JUGADOR
+            // -----------------------------------------------------
 
             if (IsPlayerDetectable())
             {
-                float distance =
+                float distanceToPlayer =
                     Vector3.Distance(
                         transform.position,
                         player.position
                     );
 
-                if (distance <= detectionRange)
+
+                if (distanceToPlayer <= detectionRange)
                 {
                     StartChasing();
+
                     return;
                 }
             }
 
-            if (noisePatrolPoint == null)
-            {
-                currentState = EnemyState.Patrolling;
-                GoToNextPatrolPoint();
-                return;
-            }
+
+            // -----------------------------------------------------
+            // SIGUIENTE PUNTO
+            // -----------------------------------------------------
 
             if (!agent.pathPending &&
-                agent.remainingDistance <= agent.stoppingDistance)
+                agent.remainingDistance <=
+                agent.stoppingDistance)
             {
-                Debug.Log(
-                    "Muki llegó al lugar donde escuchó el ruido."
-                );
+                patrolTimer +=
+                    Time.deltaTime;
 
-                noisePatrolPoint = null;
 
-                currentState = EnemyState.Patrolling;
-
-                patrolTimer = 0f;
-
-                GoToNextPatrolPoint();
-            }
-        }
-
-        // =====================================================
-        // ALTAR
-        // =====================================================
-
-        private bool IsAnyAltarActive()
-        {
-            if (altars == null || altars.Length == 0)
-                return false;
-
-            foreach (OfferingAltar altar in altars)
-            {
-                if (altar != null && altar.isActive)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void StartCalmed()
-        {
-            currentState = EnemyState.Calmed;
-
-            // Detener persecución o movimiento actual
-            agent.ResetPath();
-
-            if (stopCompletelyWhenCalmed)
-            {
-                agent.speed = 0f;
-            }
-            else
-            {
-                agent.speed = calmedSpeed;
-            }
-
-            Debug.Log(
-                "Muki está calmado. No puede detectar ni perseguir al jugador."
-            );
-        }
-
-        private void Calm()
-        {
-            // Mientras haya un altar activo,
-            // el Muki permanece calmado.
-
-            if (stopCompletelyWhenCalmed)
-            {
-                agent.ResetPath();
-                agent.velocity = Vector3.zero;
-            }
-        }
-
-        private void EndCalmed()
-        {
-            currentState = EnemyState.Patrolling;
-
-            agent.speed = patrolSpeed;
-
-            patrolTimer = 0f;
-
-            GoToNextPatrolPoint();
-
-            Debug.Log(
-                "El efecto del altar terminó. Muki vuelve a patrullar."
-            );
-        }
-
-        // =====================================================
-        // PATROL
-        // =====================================================
-
-        private void Patrol()
-        {
-            if (IsPlayerDetectable())
-            {
-                float distance =
-                    Vector3.Distance(
-                        transform.position,
-                        player.position);
-
-                if (distance <= detectionRange)
-                {
-                    StartChasing();
-                    return;
-                }
-            }
-
-            if (patrolPoints == null ||
-                patrolPoints.Length == 0)
-            {
-                return;
-            }
-
-            if (!agent.pathPending &&
-                agent.remainingDistance <= agent.stoppingDistance)
-            {
-                patrolTimer += Time.deltaTime;
-
-                if (patrolTimer >= patrolWaitTime)
+                if (patrolTimer >=
+                    patrolWaitTime)
                 {
                     patrolTimer = 0f;
 
@@ -401,195 +382,951 @@ namespace StarterAssets
             }
         }
 
+
+        // =========================================================
+        // SIGUIENTE PUNTO DE PATRULLA
+        // =========================================================
+
         private void GoToNextPatrolPoint()
         {
             if (patrolPoints == null ||
                 patrolPoints.Length == 0)
+            {
                 return;
+            }
+
+
+            if (currentPatrolIndex >=
+                patrolPoints.Length)
+            {
+                currentPatrolIndex = 0;
+            }
+
 
             Transform target =
-                patrolPoints[currentPatrolPoint];
+                patrolPoints[currentPatrolIndex];
+
+
+            currentPatrolIndex++;
+
 
             if (target != null)
             {
-                agent.SetDestination(target.position);
+                agent.isStopped = false;
+
+                agent.SetDestination(
+                    target.position
+                );
             }
-
-            currentPatrolPoint++;
-
-            if (currentPatrolPoint >= patrolPoints.Length)
-                currentPatrolPoint = 0;
         }
 
-        // =====================================================
-        // CHASE
-        // =====================================================
+
+        // =========================================================
+        // COMENZAR PERSECUCIÓN
+        // =========================================================
 
         private void StartChasing()
         {
-            // Seguridad adicional:
-            // nunca iniciar persecución si un altar está activo.
-            if (IsAnyAltarActive())
-                return;
+            currentState =
+                EnemyState.Chasing;
 
-            currentState = EnemyState.Chasing;
+            agent.speed =
+                chaseSpeed;
 
-            agent.speed = chaseSpeed;
+            agent.isStopped =
+                false;
+
 
             Debug.Log(
                 "Muki comenzó a perseguir al jugador."
             );
         }
 
+
+        // =========================================================
+        // PERSEGUIR
+        // =========================================================
+
         private void ChasePlayer()
         {
-            if (IsAnyAltarActive())
+            // -----------------------------------------------------
+            // ZONA SEGURA
+            // -----------------------------------------------------
+
+            if (IsPlayerInsideSafeZone())
             {
-                StartCalmed();
+                currentState =
+                    EnemyState.Patrolling;
+
+                agent.speed =
+                    patrolSpeed;
+
+                agent.isStopped =
+                    false;
+
+                GoToNextPatrolPoint();
+
+
+                Debug.Log(
+                    "Muki abandonó la persecución: " +
+                    "jugador en zona segura."
+                );
+
                 return;
             }
+
+
+            // -----------------------------------------------------
+            // ESCONDIDO
+            // -----------------------------------------------------
 
             if (playerHide != null &&
                 playerHide.IsHidden)
             {
                 StartSearching();
+
                 return;
             }
 
-            float distance =
+
+            // -----------------------------------------------------
+            // DISTANCIA
+            // -----------------------------------------------------
+
+            float distanceToPlayer =
                 Vector3.Distance(
                     transform.position,
-                    player.position);
+                    player.position
+                );
 
-            // =========================
-            // ATAQUE
-            // =========================
 
-            if (distance <= attackDistance)
-            {
-                TryAttackPlayer();
-                return;
-            }
-
-            // =========================
-            // PERDER AL JUGADOR
-            // =========================
-
-            if (distance > losePlayerRange)
+            if (distanceToPlayer >
+                losePlayerRange)
             {
                 StartSearching();
+
                 return;
             }
 
-            agent.SetDestination(player.position);
+
+            // -----------------------------------------------------
+            // SEGUIR AL JUGADOR
+            // -----------------------------------------------------
+
+            agent.speed =
+                chaseSpeed;
+
+            agent.isStopped =
+                false;
+
+            agent.SetDestination(
+                player.position
+            );
+
+
+            // -----------------------------------------------------
+            // ATAQUE
+            // -----------------------------------------------------
+
+            if (distanceToPlayer <=
+                attackDistance)
+            {
+                TryAttack();
+            }
         }
 
-        // =========================
-        // INTENTAR ATACAR AL JUGADOR
-        // =========================
 
-        private void TryAttackPlayer()
+        // =========================================================
+        // ATAQUE / MUERTE DEL JUGADOR
+        // =========================================================
+
+        private void TryAttack()
         {
-            if (playerHide != null &&
-                playerHide.IsHidden)
-            {
-                return;
-            }
-
-            attackTimer -= Time.deltaTime;
-
             if (attackTimer > 0f)
                 return;
 
-            attackTimer = attackCooldown;
 
-            Debug.Log("¡Muki atrapó al jugador!");
+            attackTimer =
+                attackCooldown;
+
+
+            Debug.Log(
+                "¡Muki atrapó al jugador!"
+            );
+
+
+            // =====================================================
+            // REGRESAR AL ÚLTIMO CHECKPOINT
+            // =====================================================
 
             if (PlayerRespawn.Instance != null)
             {
                 PlayerRespawn.Instance.Respawn();
             }
-        }
+            else
+            {
+                Debug.LogWarning(
+                    "Muki intentó matar al jugador, " +
+                    "pero no existe PlayerRespawn.Instance."
+                );
+            }
 
-        // =====================================================
-        // SEARCH
-        // =====================================================
 
-        private void StartSearching()
-        {
-            currentState = EnemyState.Searching;
+            // =====================================================
+            // REINICIAR COMPORTAMIENTO DEL MUKI
+            // =====================================================
 
-            searchTimer = searchTime;
+            currentState =
+                EnemyState.Patrolling;
 
-            agent.speed = patrolSpeed;
+            investigatingNoise =
+                false;
+
+            noisePatrolPoint =
+                null;
+
+            calmPatrolTarget =
+                null;
+
+            patrolTimer =
+                0f;
+
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
 
             agent.ResetPath();
 
+            GoToNextPatrolPoint();
+        }
+
+
+        // =========================================================
+        // COMENZAR BÚSQUEDA
+        // =========================================================
+
+        private void StartSearching()
+        {
+            currentState =
+                EnemyState.Searching;
+
+            searchTimer =
+                searchTime;
+
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
+
+            agent.ResetPath();
+
+
             Debug.Log(
-                "Muki perdió al jugador. Buscando..."
+                "Muki está buscando al jugador."
             );
         }
 
+
+        // =========================================================
+        // BUSCAR
+        // =========================================================
+
         private void Search()
         {
-            // Si se activa un altar mientras busca
-            if (IsAnyAltarActive())
-            {
-                StartCalmed();
-                return;
-            }
-
-            searchTimer -= Time.deltaTime;
+            // -----------------------------------------------------
+            // DETECTAR NUEVAMENTE
+            // -----------------------------------------------------
 
             if (IsPlayerDetectable())
             {
-                float distance =
+                float distanceToPlayer =
                     Vector3.Distance(
                         transform.position,
-                        player.position);
+                        player.position
+                    );
 
-                if (distance <= detectionRange)
+
+                if (distanceToPlayer <=
+                    detectionRange)
                 {
                     StartChasing();
+
                     return;
                 }
             }
+
+
+            // -----------------------------------------------------
+            // TEMPORIZADOR
+            // -----------------------------------------------------
+
+            searchTimer -=
+                Time.deltaTime;
+
 
             if (searchTimer <= 0f)
             {
                 currentState =
                     EnemyState.Patrolling;
 
-                GoToNextPatrolPoint();
+                agent.speed =
+                    patrolSpeed;
 
-                Debug.Log(
-                    "Muki dejó de buscar y volvió a patrullar."
-                );
+                patrolTimer =
+                    0f;
+
+                GoToNextPatrolPoint();
             }
         }
 
-        // =====================================================
-        // DETECTION
-        // =====================================================
+
+        // =========================================================
+        // RECIBIR RUIDO
+        // =========================================================
+
+        public void HearNoise(
+            Vector3 noisePosition,
+            float noiseRadius,
+            string noiseType)
+        {
+            // -----------------------------------------------------
+            // ALTAR
+            // -----------------------------------------------------
+
+            if (IsAnyAltarActive())
+                return;
+
+
+            // -----------------------------------------------------
+            // ZONA SEGURA
+            // -----------------------------------------------------
+
+            if (IsPlayerInsideSafeZone())
+                return;
+
+
+            // -----------------------------------------------------
+            // YA PERSIGUE
+            // -----------------------------------------------------
+
+            if (currentState ==
+                EnemyState.Chasing)
+            {
+                return;
+            }
+
+
+            // -----------------------------------------------------
+            // YA INVESTIGA
+            // -----------------------------------------------------
+
+            if (currentState ==
+                EnemyState.InvestigatingNoise)
+            {
+                return;
+            }
+
+
+            // -----------------------------------------------------
+            // DISTANCIA AL RUIDO
+            // -----------------------------------------------------
+
+            float distanceToNoise =
+                Vector3.Distance(
+                    transform.position,
+                    noisePosition
+                );
+
+
+            if (distanceToNoise >
+                noiseRadius)
+            {
+                return;
+            }
+
+
+            // -----------------------------------------------------
+            // PUNTO MÁS CERCANO
+            // -----------------------------------------------------
+
+            Transform closestPoint = null;
+
+            float closestDistance =
+                Mathf.Infinity;
+
+
+            if (patrolPoints != null)
+            {
+                foreach (
+                    Transform point
+                    in patrolPoints)
+                {
+                    if (point == null)
+                        continue;
+
+
+                    float distance =
+                        Vector3.Distance(
+                            point.position,
+                            noisePosition
+                        );
+
+
+                    if (distance <=
+                        noiseRadius &&
+                        distance <
+                        closestDistance)
+                    {
+                        closestDistance =
+                            distance;
+
+                        closestPoint =
+                            point;
+                    }
+                }
+            }
+
+
+            if (closestPoint == null)
+                return;
+
+
+            // -----------------------------------------------------
+            // COMENZAR INVESTIGACIÓN
+            // -----------------------------------------------------
+
+            investigatingNoise =
+                true;
+
+            noisePatrolPoint =
+                closestPoint;
+
+            currentState =
+                EnemyState.InvestigatingNoise;
+
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
+
+            agent.SetDestination(
+                closestPoint.position
+            );
+
+
+            Debug.Log(
+                "Muki escuchó un ruido: " +
+                noiseType
+            );
+        }
+
+
+        // =========================================================
+        // INVESTIGAR RUIDO
+        // =========================================================
+
+        private void InvestigateNoise()
+        {
+            // -----------------------------------------------------
+            // ESCONDIDO
+            // -----------------------------------------------------
+
+            if (playerHide != null &&
+                playerHide.IsHidden)
+            {
+                return;
+            }
+
+
+            // -----------------------------------------------------
+            // ZONA SEGURA
+            // -----------------------------------------------------
+
+            if (IsPlayerInsideSafeZone())
+            {
+                investigatingNoise =
+                    false;
+
+                noisePatrolPoint =
+                    null;
+
+                currentState =
+                    EnemyState.Patrolling;
+
+                agent.speed =
+                    patrolSpeed;
+
+                GoToNextPatrolPoint();
+
+                return;
+            }
+
+
+            // -----------------------------------------------------
+            // DETECTAR JUGADOR
+            // -----------------------------------------------------
+
+            if (IsPlayerDetectable())
+            {
+                float distanceToPlayer =
+                    Vector3.Distance(
+                        transform.position,
+                        player.position
+                    );
+
+
+                if (distanceToPlayer <=
+                    detectionRange)
+                {
+                    investigatingNoise =
+                        false;
+
+                    noisePatrolPoint =
+                        null;
+
+                    StartChasing();
+
+                    return;
+                }
+            }
+
+
+            // -----------------------------------------------------
+            // SIN DESTINO
+            // -----------------------------------------------------
+
+            if (noisePatrolPoint == null)
+            {
+                investigatingNoise =
+                    false;
+
+                currentState =
+                    EnemyState.Patrolling;
+
+                GoToNextPatrolPoint();
+
+                return;
+            }
+
+
+            // -----------------------------------------------------
+            // LLEGÓ AL RUIDO
+            // -----------------------------------------------------
+
+            if (!agent.pathPending &&
+                agent.remainingDistance <=
+                agent.stoppingDistance)
+            {
+                Debug.Log(
+                    "Muki llegó al lugar del ruido."
+                );
+
+
+                investigatingNoise =
+                    false;
+
+                noisePatrolPoint =
+                    null;
+
+                currentState =
+                    EnemyState.Patrolling;
+
+                patrolTimer =
+                    0f;
+
+                GoToNextPatrolPoint();
+            }
+        }
+
+
+        // =========================================================
+        // JUGADOR DETECTABLE
+        // =========================================================
 
         private bool IsPlayerDetectable()
         {
-            // Altar activo = jugador invisible para el Muki
+            // -----------------------------------------------------
+            // ALTAR
+            // -----------------------------------------------------
+
             if (IsAnyAltarActive())
                 return false;
 
-            // Escondite = jugador invisible
+
+            // -----------------------------------------------------
+            // ESCONDIDO
+            // -----------------------------------------------------
+
             if (playerHide != null &&
                 playerHide.IsHidden)
             {
                 return false;
             }
 
+
+            // -----------------------------------------------------
+            // ZONA SEGURA
+            // -----------------------------------------------------
+
+            if (IsPlayerInsideSafeZone())
+                return false;
+
+
             return true;
         }
 
 
+        // =========================================================
+        // JUGADOR EN ZONA SEGURA
+        // =========================================================
+
+        private bool IsPlayerInsideSafeZone()
+        {
+            if (player == null)
+                return false;
+
+
+            if (safeZones == null)
+                return false;
+
+
+            foreach (
+                MukiSafeZone zone
+                in safeZones)
+            {
+                if (zone == null)
+                    continue;
+
+
+                if (zone.Contains(
+                    player.position))
+                {
+                    return true;
+                }
+            }
+
+
+            return false;
+        }
+
+
+        // =========================================================
+        // ALTAR ACTIVO
+        // =========================================================
+
+        private bool IsAnyAltarActive()
+        {
+            if (altars == null)
+                return false;
+
+
+            foreach (
+                OfferingAltar altar
+                in altars)
+            {
+                if (altar == null)
+                    continue;
+
+
+                if (altar.isActive)
+                    return true;
+            }
+
+
+            return false;
+        }
+
+
+        // =========================================================
+        // COMENZAR CALMADO
+        // =========================================================
+
+        private void StartCalmed()
+        {
+            currentState =
+                EnemyState.Calmed;
+
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
+
+            agent.ResetPath();
+
+
+            calmPatrolTarget =
+                GetFarthestPatrolPoint();
+
+
+            if (calmPatrolTarget != null)
+            {
+                agent.SetDestination(
+                    calmPatrolTarget.position
+                );
+            }
+
+
+            Debug.Log(
+                "Muki está calmado: " +
+                "patrulla lejos del jugador " +
+                "y no ataca."
+            );
+        }
+
+
+        // =========================================================
+        // CALMADO
+        // =========================================================
+
+        private void Calm()
+        {
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
+
+
+            if (calmPatrolTarget == null)
+            {
+                calmPatrolTarget =
+                    GetFarthestPatrolPoint();
+
+
+                if (calmPatrolTarget != null)
+                {
+                    agent.SetDestination(
+                        calmPatrolTarget.position
+                    );
+                }
+
+
+                return;
+            }
+
+
+            if (!agent.pathPending &&
+                agent.remainingDistance <=
+                agent.stoppingDistance)
+            {
+                calmPatrolTarget =
+                    GetFarthestPatrolPoint();
+
+
+                if (calmPatrolTarget != null)
+                {
+                    agent.SetDestination(
+                        calmPatrolTarget.position
+                    );
+                }
+            }
+        }
+
+
+        // =========================================================
+        // PUNTO MÁS LEJANO DEL JUGADOR
+        // =========================================================
+
+        private Transform GetFarthestPatrolPoint()
+        {
+            if (patrolPoints == null ||
+                patrolPoints.Length == 0)
+            {
+                return null;
+            }
+
+
+            Transform farthestPoint =
+                null;
+
+            float greatestDistance =
+                -1f;
+
+
+            foreach (
+                Transform point
+                in patrolPoints)
+            {
+                if (point == null)
+                    continue;
+
+
+                if (point ==
+                    calmPatrolTarget &&
+                    patrolPoints.Length > 1)
+                {
+                    continue;
+                }
+
+
+                float distance = 0f;
+
+
+                if (player != null)
+                {
+                    distance =
+                        Vector3.Distance(
+                            point.position,
+                            player.position
+                        );
+                }
+
+
+                if (distance >
+                    greatestDistance)
+                {
+                    greatestDistance =
+                        distance;
+
+                    farthestPoint =
+                        point;
+                }
+            }
+
+
+            if (farthestPoint == null)
+            {
+                farthestPoint =
+                    calmPatrolTarget;
+            }
+
+
+            return farthestPoint;
+        }
+
+
+        // =========================================================
+        // TERMINAR CALMADO
+        // =========================================================
+
+        private void EndCalmed()
+        {
+            currentState =
+                EnemyState.Patrolling;
+
+            agent.speed =
+                patrolSpeed;
+
+            agent.isStopped =
+                false;
+
+            calmPatrolTarget =
+                null;
+
+            patrolTimer =
+                0f;
+
+            GoToNextPatrolPoint();
+
+
+            Debug.Log(
+                "El efecto del altar terminó. " +
+                "Muki vuelve a patrullar normalmente."
+            );
+        }
+
+
+        // =========================================================
+        // AUDIO
+        // =========================================================
+
+        private void UpdateStateAudio()
+        {
+            // -----------------------------------------------------
+            // No hacer nada si el estado no cambió
+            // -----------------------------------------------------
+
+            if (audioStateInitialized &&
+                lastAudioState ==
+                currentState)
+            {
+                return;
+            }
+
+
+            lastAudioState =
+                currentState;
+
+            audioStateInitialized =
+                true;
+
+
+            // -----------------------------------------------------
+            // DETENER LOOP ANTERIOR
+            // -----------------------------------------------------
+
+            if (stateLoopAudio != null)
+                stateLoopAudio.Stop();
+
+
+            // =====================================================
+            // INVESTIGACIÓN
+            // =====================================================
+
+            if (currentState ==
+                EnemyState.InvestigatingNoise)
+            {
+                // Sonido que ocurre una sola vez
+
+                if (investigationStartSound != null)
+                {
+                    oneShotAudio.PlayOneShot(
+                        investigationStartSound
+                    );
+                }
+
+
+                // Loop mientras investiga
+
+                if (investigationLoopSound != null)
+                {
+                    stateLoopAudio.clip =
+                        investigationLoopSound;
+
+                    stateLoopAudio.loop =
+                        true;
+
+                    stateLoopAudio.Play();
+                }
+            }
+
+
+            // =====================================================
+            // PERSECUCIÓN
+            // =====================================================
+
+            else if (currentState ==
+                     EnemyState.Chasing)
+            {
+                if (chaseLaughSound != null)
+                {
+                    stateLoopAudio.clip =
+                        chaseLaughSound;
+
+                    stateLoopAudio.loop =
+                        true;
+
+                    stateLoopAudio.Play();
+                }
+            }
+
+
+            // =====================================================
+            // OTROS ESTADOS
+            // =====================================================
+
+            else
+            {
+                // El loop ya fue detenido arriba.
+                //
+                // El sonido de inicio de investigación
+                // NO se corta y puede terminar naturalmente.
+            }
+        }
     }
-
-
 }

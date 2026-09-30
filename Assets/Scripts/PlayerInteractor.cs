@@ -123,6 +123,21 @@ namespace StarterAssets
                 hit.collider.name
             );
 
+            RadioInteractable radio =
+             hit.collider.GetComponent<RadioInteractable>();
+
+            if (radio == null)
+            {
+                radio =
+                    hit.collider.GetComponentInParent<RadioInteractable>();
+            }
+
+            if (radio != null)
+            {
+                radio.Interact();
+                return;
+            }
+
             // ==========================================
             // PICO
             // ==========================================
