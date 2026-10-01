@@ -148,5 +148,39 @@ namespace StarterAssets
 
             return removed;
         }
+
+        public int RemoveItem(ItemData itemToRemove, int amountToRemove)
+        {
+            if (itemToRemove == null || amountToRemove <= 0)
+                return 0;
+
+            int remaining = amountToRemove;
+            int removed = 0;
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (items[i] == null || items[i].item == null)
+                    continue;
+
+                if (items[i].item != itemToRemove)
+                    continue;
+
+                int amount = Mathf.Min(items[i].amount, remaining);
+
+                items[i].amount -= amount;
+                remaining -= amount;
+                removed += amount;
+
+                if (items[i].amount <= 0)
+                    items[i] = null;
+
+                RefreshSlot(i);
+
+                if (remaining <= 0)
+                    break;
+            }
+
+            return removed;
+        }
     }
 }

@@ -1,3 +1,4 @@
+
 using TMPro;
 using UnityEngine;
 
@@ -13,10 +14,15 @@ namespace StarterAssets
             if (mineralText == null)
                 return;
 
-            mineralText.text =
-                current.ToString() +
-                "/" +
-                maximum.ToString();
+            mineralText.text = current + "/" + maximum;
+        }
+
+        public void UpdateContents(string contents)
+        {
+            if (mineralText == null)
+                return;
+
+            mineralText.text = contents;
         }
     }
 }

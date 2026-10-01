@@ -1,8 +1,24 @@
+
+using System;
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace StarterAssets
 {
+    [Serializable]
+    public class ChestMineralStack
+    {
+        public ItemData item;
+        public int amount;
+
+        public ChestMineralStack(ItemData itemData, int quantity)
+        {
+            item = itemData;
+            amount = quantity;
+        }
+    }
+
     public class MineralChest : MonoBehaviour
     {
         [Header("Chest Settings")]
@@ -10,12 +26,14 @@ namespace StarterAssets
 
         [Header("Interaction")]
         public float interactDistance = 3.5f;
-        public LayerMask playerLayer;
 
         [Header("UI")]
         public MineralChestUI chestUI;
 
-        [Header("State")]
+        [Header("Stored Minerals")]
+        public List<ChestMineralStack> storedMinerals =
+            new List<ChestMineralStack>();
+
         public int currentMinerals = 0;
 
         private Camera playerCamera;
@@ -23,19 +41,17 @@ namespace StarterAssets
         private void Start()
         {
             playerCamera = Camera.main;
-
-            if (chestUI != null)
-            {
-                chestUI.UpdateText(currentMinerals, maxMinerals);
-            }
+            RecalculateTotal();
+            UpdateUI();
         }
 
         private void Update()
         {
-            if (Keyboard.current == null)
+            if (UnityEngine.InputSystem.Keyboard.current == null)
                 return;
 
-            if (!Keyboard.current.eKey.wasPressedThisFrame)
+            if (!UnityEngine.InputSystem.Keyboard.current.eKey
+                    .wasPressedThisFrame)
                 return;
 
             TryDepositMinerals();
@@ -45,7 +61,7 @@ namespace StarterAssets
         {
             if (currentMinerals >= maxMinerals)
             {
-                Debug.Log("El cofre ya está lleno.");
+                Debug.Log("El cofre está lleno.");
                 return;
             }
 
@@ -61,13 +77,10 @@ namespace StarterAssets
             );
 
             if (!Physics.Raycast(
-                    ray,
-                    out RaycastHit hit,
-                    interactDistance,
-                    playerLayer))
-            {
+                ray,
+                out RaycastHit hit,
+                interactDistance))
                 return;
-            }
 
             MineralChest chest =
                 hit.collider.GetComponentInParent<MineralChest>();
@@ -75,50 +88,138 @@ namespace StarterAssets
             if (chest != this)
                 return;
 
-            DepositFromInventory();
+            DepositAllFromInventory();
         }
 
-        private void DepositFromInventory()
+        private void DepositAllFromInventory()
         {
-            if (InventoryManager.Instance == null)
+            InventoryManager inventory = InventoryManager.Instance;
+
+            if (inventory == null)
             {
                 Debug.LogError("No existe InventoryManager.");
                 return;
             }
 
-            int spaceAvailable =
-                maxMinerals - currentMinerals;
+            int depositedTotal = 0;
 
-            if (spaceAvailable <= 0)
-                return;
+            // Recorremos una copia para poder modificar el inventario
+            // sin alterar la lista que estamos recorriendo.
+            List<InventoryItem> inventorySnapshot =
+                new List<InventoryItem>(inventory.items);
 
-            int deposited =
-                InventoryManager.Instance.RemoveMinerals(spaceAvailable);
+            foreach (InventoryItem inventoryItem in inventorySnapshot)
+            {
+                if (currentMinerals >= maxMinerals)
+                    break;
 
-            if (deposited <= 0)
+                if (inventoryItem == null || inventoryItem.item == null)
+                    continue;
+
+                ItemData mineral = inventoryItem.item;
+
+                int spaceAvailable = maxMinerals - currentMinerals;
+                int amountToDeposit = Mathf.Min(
+                    inventoryItem.amount,
+                    spaceAvailable
+                );
+
+                if (amountToDeposit <= 0)
+                    continue;
+
+                int actuallyRemoved = inventory.RemoveItem(
+                    mineral,
+                    amountToDeposit
+                );
+
+                if (actuallyRemoved <= 0)
+                    continue;
+
+                AddStoredMineral(mineral, actuallyRemoved);
+                depositedTotal += actuallyRemoved;
+            }
+
+            RecalculateTotal();
+            UpdateUI();
+
+            if (depositedTotal <= 0)
             {
                 Debug.Log("No tienes minerales para depositar.");
                 return;
             }
 
-            currentMinerals += deposited;
+            Debug.Log(
+                "Total depositado: " + depositedTotal +
+                " | Cofre: " + currentMinerals + "/" + maxMinerals
+            );
 
-            if (chestUI != null)
+            // Comprueba los requisitos usando las cantidades del cofre,
+            // no las cantidades que el jugador recogió.
+            if (GameVictoryManager.Instance != null)
+                GameVictoryManager.Instance.CheckRequirements(this);
+        }
+
+        private void AddStoredMineral(ItemData item, int amount)
+        {
+            foreach (ChestMineralStack stack in storedMinerals)
             {
-                chestUI.UpdateText(
-                    currentMinerals,
-                    maxMinerals
+                if (stack.item == item)
+                {
+                    stack.amount += amount;
+                    return;
+                }
+            }
+
+            storedMinerals.Add(new ChestMineralStack(item, amount));
+        }
+
+        public int GetAmountOf(ItemData item)
+        {
+            if (item == null)
+                return 0;
+
+            foreach (ChestMineralStack stack in storedMinerals)
+            {
+                if (stack.item == item)
+                    return stack.amount;
+            }
+
+            return 0;
+        }
+
+        private void RecalculateTotal()
+        {
+            currentMinerals = 0;
+
+            foreach (ChestMineralStack stack in storedMinerals)
+            {
+                if (stack != null && stack.item != null)
+                    currentMinerals += stack.amount;
+            }
+        }
+
+        private void UpdateUI()
+        {
+            if (chestUI == null)
+                return;
+
+            StringBuilder text = new StringBuilder();
+
+            text.AppendLine(
+                "Total: " + currentMinerals + "/" + maxMinerals
+            );
+
+            foreach (ChestMineralStack stack in storedMinerals)
+            {
+                if (stack == null || stack.item == null)
+                    continue;
+
+                text.AppendLine(
+                    stack.item.itemName + ": " + stack.amount
                 );
             }
 
-            Debug.Log(
-                "Minerales depositados: " +
-                deposited +
-                " | Cofre: " +
-                currentMinerals +
-                "/" +
-                maxMinerals
-            );
+            chestUI.UpdateContents(text.ToString());
         }
     }
 }

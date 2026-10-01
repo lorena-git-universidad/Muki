@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c95e8f33bb96cc944bed8831110431ef
+guid: c3ffbbccc29cd4642b770401a56b3139
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -7,13 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Material.001
-    second: {fileID: 2100000, guid: 85008d83469cf4d47a73dcee4154c095, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.003
-    second: {fileID: 2100000, guid: 57ac409caf463744c8a8408569cf1845, type: 2}
+      name: Rock
+    second: {fileID: 2100000, guid: 54c3aab71d616d343a6502b721b6028c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -45,7 +40,7 @@ ModelImporter:
     lODScreenPercentages: []
     globalScale: 1
     meshCompression: 0
-    addColliders: 1
+    addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
     importPhysicalCameras: 1
