@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,147 +8,141 @@ namespace StarterAssets
     {
         public static InventoryManager Instance;
 
-        [Header("UI")]
-        public Transform slotParent;
-        public GameObject slotPrefab;
-
         [Header("Inventory")]
-        public int slotCount = 36;
-
         public List<InventoryItem> items = new();
 
-        private readonly List<InventorySlot> slots = new();
+        // Evento que avisa a la UI cuando cambia el inventario
+        public event Action OnInventoryChanged;
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             Instance = this;
         }
 
-        private void Start()
-        {
-            GenerateSlots();
-        }
-
-        void GenerateSlots()
-        {
-            for (int i = 0; i < slotCount; i++)
-            {
-                GameObject slotObj = Instantiate(slotPrefab, slotParent);
-
-                InventorySlot slot = slotObj.GetComponent<InventorySlot>();
-                slot.slotIndex = i;
-
-                slot.Clear();
-
-                slots.Add(slot);
-                items.Add(null);
-            }
-        }
+        // =========================================================
+        // ADD ITEM
+        // =========================================================
 
         public bool AddItem(ItemData item, int amount = 1)
         {
-            // Buscar stack existente
-            for (int i = 0; i < items.Count; i++)
+            if (item == null)
             {
-                if (items[i] != null &&
-                    items[i].item == item &&
-                    items[i].amount < item.maxStack)
-                {
-                    items[i].amount += amount;
-                    RefreshSlot(i);
-                    return true;
-                }
+                Debug.LogError("InventoryManager: se intentó añadir un ItemData NULL.");
+                return false;
             }
 
-            // Buscar espacio vacío
+            if (amount <= 0)
+            {
+                Debug.LogWarning(
+                    $"InventoryManager: cantidad inválida para {item.itemName}: {amount}"
+                );
+
+                return false;
+            }
+
+            // -----------------------------------------------------
+            // Buscar stack existente
+            // -----------------------------------------------------
+
             for (int i = 0; i < items.Count; i++)
             {
                 if (items[i] == null)
+                    continue;
+
+                if (items[i].item != item)
+                    continue;
+
+                if (items[i].amount >= item.maxStack)
+                    continue;
+
+                int availableSpace = item.maxStack - items[i].amount;
+                int amountToAdd = Mathf.Min(amount, availableSpace);
+
+                items[i].amount += amountToAdd;
+                amount -= amountToAdd;
+
+                if (amount <= 0)
                 {
-                    items[i] = new InventoryItem(item, amount);
-                    RefreshSlot(i);
+                    NotifyInventoryChanged();
                     return true;
                 }
             }
 
-            Debug.Log("Inventario lleno.");
-            return false;
+            // -----------------------------------------------------
+            // Crear nuevo stack
+            // -----------------------------------------------------
+
+            if (amount > 0)
+            {
+                items.Add(new InventoryItem(item, amount));
+            }
+
+            NotifyInventoryChanged();
+
+            return true;
         }
+
+        // =========================================================
+        // GET ITEM
+        // =========================================================
 
         public InventoryItem GetItem(int index)
         {
+            if (index < 0 || index >= items.Count)
+                return null;
+
             return items[index];
         }
 
+        // =========================================================
+        // SET ITEM
+        // =========================================================
+
         public void SetItem(int index, InventoryItem item)
         {
+            if (index < 0)
+                return;
+
+            while (items.Count <= index)
+                items.Add(null);
+
             items[index] = item;
-            RefreshSlot(index);
+
+            NotifyInventoryChanged();
         }
 
-        public void MoveItem(int from, int to)
+        // =========================================================
+        // GET AMOUNT
+        // =========================================================
+
+        public int GetItemAmount(ItemData item)
         {
-            InventoryItem moving = items[from];
-
-            items[from] = items[to];
-            items[to] = moving;
-
-            RefreshSlot(from);
-            RefreshSlot(to);
-        }
-
-        public void RefreshSlot(int index)
-        {
-            if (items[index] == null)
-                slots[index].Clear();
-            else
-                slots[index].SetItem(items[index]);
-        }
-
-        public int RemoveMinerals(int amountToRemove)
-        {
-            if (amountToRemove <= 0)
+            if (item == null)
                 return 0;
 
-            int remaining = amountToRemove;
-            int removed = 0;
+            int amount = 0;
 
-            for (int i = 0; i < items.Count; i++)
+            foreach (InventoryItem inventoryItem in items)
             {
-                if (items[i] == null)
+                if (inventoryItem == null)
                     continue;
 
-                InventoryItem inventoryItem = items[i];
-
-                if (inventoryItem.item == null)
-                    continue;
-
-                int amountInSlot = inventoryItem.amount;
-
-                if (amountInSlot <= remaining)
-                {
-                    removed += amountInSlot;
-                    remaining -= amountInSlot;
-
-                    items[i] = null;
-                    RefreshSlot(i);
-                }
-                else
-                {
-                    inventoryItem.amount -= remaining;
-
-                    removed += remaining;
-                    remaining = 0;
-
-                    RefreshSlot(i);
-                }
-
-                if (remaining <= 0)
-                    break;
+                if (inventoryItem.item == item)
+                    amount += inventoryItem.amount;
             }
 
-            return removed;
+            return amount;
         }
+
+        // =========================================================
+        // REMOVE ITEM
+        // =========================================================
 
         public int RemoveItem(ItemData itemToRemove, int amountToRemove)
         {
@@ -157,30 +152,95 @@ namespace StarterAssets
             int remaining = amountToRemove;
             int removed = 0;
 
-            for (int i = 0; i < items.Count; i++)
+            for (int i = items.Count - 1; i >= 0; i--)
             {
-                if (items[i] == null || items[i].item == null)
+                InventoryItem inventoryItem = items[i];
+
+                if (inventoryItem == null)
                     continue;
 
-                if (items[i].item != itemToRemove)
+                if (inventoryItem.item != itemToRemove)
                     continue;
 
-                int amount = Mathf.Min(items[i].amount, remaining);
+                int amount = Mathf.Min(
+                    inventoryItem.amount,
+                    remaining
+                );
 
-                items[i].amount -= amount;
+                inventoryItem.amount -= amount;
+
                 remaining -= amount;
                 removed += amount;
 
-                if (items[i].amount <= 0)
-                    items[i] = null;
-
-                RefreshSlot(i);
+                if (inventoryItem.amount <= 0)
+                {
+                    items.RemoveAt(i);
+                }
 
                 if (remaining <= 0)
                     break;
             }
 
+            if (removed > 0)
+                NotifyInventoryChanged();
+
             return removed;
+        }
+
+        // =========================================================
+        // REMOVE MINERALS
+        // =========================================================
+
+        public int RemoveMinerals(int amountToRemove)
+        {
+            if (amountToRemove <= 0)
+                return 0;
+
+            int remaining = amountToRemove;
+            int removed = 0;
+
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                InventoryItem inventoryItem = items[i];
+
+                if (inventoryItem == null)
+                    continue;
+
+                if (inventoryItem.item == null)
+                    continue;
+
+                int amount = Mathf.Min(
+                    inventoryItem.amount,
+                    remaining
+                );
+
+                inventoryItem.amount -= amount;
+
+                remaining -= amount;
+                removed += amount;
+
+                if (inventoryItem.amount <= 0)
+                {
+                    items.RemoveAt(i);
+                }
+
+                if (remaining <= 0)
+                    break;
+            }
+
+            if (removed > 0)
+                NotifyInventoryChanged();
+
+            return removed;
+        }
+
+        // =========================================================
+        // NOTIFY UI
+        // =========================================================
+
+        private void NotifyInventoryChanged()
+        {
+            OnInventoryChanged?.Invoke();
         }
     }
 }
