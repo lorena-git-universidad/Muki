@@ -23,6 +23,9 @@ namespace StarterAssets
         [Header("State")]
         public bool hasPickaxe;
 
+        [Header("Mining UI")]
+        public MiningProgressUI miningProgressUI;
+
         [HideInInspector]
         public GameObject equippedPickaxe;
 
@@ -51,6 +54,9 @@ namespace StarterAssets
                 pickaxeHolder =
                     playerCamera.transform.Find("PickaxeHolder");
             }
+
+            if (miningProgressUI == null)
+                miningProgressUI = FindFirstObjectByType<MiningProgressUI>();
         }
 
         private void Update()
@@ -102,6 +108,9 @@ namespace StarterAssets
             bool finished =
                 currentRock.Mine(Time.deltaTime);
 
+            if (miningProgressUI != null)
+                miningProgressUI.ShowProgress(currentRock.MiningProgress);
+
             if (finished)
             {
                 StopMining();
@@ -114,6 +123,9 @@ namespace StarterAssets
                 return;
 
             isMining = false;
+
+            if (miningProgressUI != null)
+                miningProgressUI.HideProgress();
 
             if (currentRock != null)
             {
@@ -132,7 +144,7 @@ namespace StarterAssets
             if (pickaxeHolder == null)
             {
                 Debug.LogError(
-                    "No se encontró PickaxeHolder."
+                    "No se encontrï¿½ PickaxeHolder."
                 );
 
                 return false;
@@ -142,7 +154,7 @@ namespace StarterAssets
             hasPickaxe = true;
 
             // ==========================================
-            // DESACTIVAR FÍSICA DEL PICO
+            // DESACTIVAR Fï¿½SICA DEL PICO
             // ==========================================
 
             Collider[] cols =
@@ -170,7 +182,7 @@ namespace StarterAssets
                 LayerMask.NameToLayer("Ignore Raycast");
 
             // ==========================================
-            // PASAR A LA CÁMARA
+            // PASAR A LA Cï¿½MARA
             // ==========================================
 
             equippedPickaxe.transform.SetParent(
@@ -190,20 +202,20 @@ namespace StarterAssets
                 equippedPickaxe.transform.localRotation;
 
             // ==========================================
-            // HACER INVISIBLE EL PICO FÍSICO
+            // HACER INVISIBLE EL PICO Fï¿½SICO
             // ==========================================
 
             SetPickaxeVisible(false);
 
             Debug.Log(
-                "Pico equipado. Pico físico oculto."
+                "Pico equipado. Pico fï¿½sico oculto."
             );
 
             return true;
         }
 
         // ==========================================
-        // MOSTRAR / OCULTAR PICO FÍSICO
+        // MOSTRAR / OCULTAR PICO Fï¿½SICO
         // ==========================================
 
         public void SetPickaxeVisible(bool visible)
@@ -221,7 +233,7 @@ namespace StarterAssets
         }
 
         // ==========================================
-        // ANIMACIÓN DE MINADO ACTUAL
+        // ANIMACIï¿½N DE MINADO ACTUAL
         // ==========================================
 
         private void AnimatePickaxe()

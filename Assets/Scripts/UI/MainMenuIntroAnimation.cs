@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Muki.UI
 {
@@ -15,14 +14,11 @@ namespace Muki.UI
         [SerializeField] private float exitDuration = 0.35f;
 
         private CanvasGroup overlay;
-        private CanvasGroup warmField;
-        private CanvasGroup rightShade;
         private CanvasGroup title;
         private CanvasGroup subtitle;
         private CanvasGroup navigation;
         private CanvasGroup playButton;
         private CanvasGroup quitButton;
-        private CanvasGroup meta;
         private RectTransform titleRect;
         private RectTransform navigationRect;
         private RectTransform playRect;
@@ -34,36 +30,25 @@ namespace Muki.UI
         private void Awake()
         {
             overlay = GetOrAddCanvasGroup("UX_TransitionOverlay");
-            warmField = GetOrAddCanvasGroup("WarmField");
-            rightShade = GetOrAddCanvasGroup("RightShade");
-            title = GetOrAddCanvasGroup("Title");
-            subtitle = GetOrAddCanvasGroup("Subtitle");
-            navigation = GetOrAddCanvasGroup("Navigation");
-            playButton = GetOrAddCanvasGroup("PlayButton");
-            quitButton = GetOrAddCanvasGroup("QuitButton");
-            meta = GetOrAddCanvasGroup("TopMeta");
-
-            titleRect = FindRect("Title");
-            navigationRect = FindRect("Navigation");
-            playRect = FindRect("PlayButton");
-            quitRect = FindRect("QuitButton");
+            title = GetOrAddCanvasGroup("Titulo");
+            subtitle = GetOrAddCanvasGroup("Subtitulo");
+            navigation = GetOrAddCanvasGroup("Elementos_Derecha");
+            playButton = GetOrAddCanvasGroup("Jugar_Button");
+            quitButton = GetOrAddCanvasGroup("Salir_Button");
+            titleRect = FindRect("Titulo");
+            navigationRect = FindRect("Elementos_Derecha");
+            playRect = FindRect("Jugar_Button");
+            quitRect = FindRect("Salir_Button");
             playScale = playRect != null ? playRect.localScale : Vector3.one;
-
-            overlay.alpha = 1f;
-            warmField.alpha = 0f;
-            rightShade.alpha = 0f;
-            title.alpha = 0f;
-            subtitle.alpha = 0f;
-            navigation.alpha = 0f;
-            playButton.alpha = 0f;
-            quitButton.alpha = 0f;
-            meta.alpha = 0f;
+            SetAlpha(overlay, 1f);
+            SetAlpha(title, 0f);
+            SetAlpha(subtitle, 0f);
+            SetAlpha(navigation, 0f);
+            SetAlpha(playButton, 0f);
+            SetAlpha(quitButton, 0f);
         }
 
-        private void Start()
-        {
-            StartCoroutine(PlayIntro());
-        }
+        private void Start() => StartCoroutine(PlayIntro());
 
         private IEnumerator PlayIntro()
         {
@@ -71,27 +56,19 @@ namespace Muki.UI
             Vector3 navigationStart = navigationRect != null ? navigationRect.localPosition : Vector3.zero;
             Vector3 playStart = playRect != null ? playRect.localPosition : Vector3.zero;
             Vector3 quitStart = quitRect != null ? quitRect.localPosition : Vector3.zero;
-
             if (titleRect != null) titleRect.localPosition = titleStart + Vector3.left * 70f;
             if (navigationRect != null) navigationRect.localPosition = navigationStart + Vector3.right * 80f;
             if (playRect != null) playRect.localPosition = playStart + Vector3.right * 32f;
             if (quitRect != null) quitRect.localPosition = quitStart + Vector3.right * 32f;
-
-            StartCoroutine(FadeCanvas(warmField, 1f, 0.55f));
-            StartCoroutine(FadeCanvas(rightShade, 1f, 0.75f));
             yield return FadeCanvas(overlay, 0f, overlayFadeDuration);
-
             yield return new WaitForSecondsRealtime(titleDelay);
-            yield return AnimateCanvasAndPosition(title, titleRect, 1f, titleStart, 0.75f, 70f, Vector3.left);
-
-            yield return AnimateCanvasAndPosition(subtitle, null, 1f, Vector3.zero, 0.42f, 0f, Vector3.zero);
-            yield return new WaitForSecondsRealtime(menuDelay - titleDelay);
-            yield return AnimateCanvasAndPosition(navigation, navigationRect, 1f, navigationStart, 0.6f, 80f, Vector3.right);
-            yield return AnimateCanvasAndPosition(playButton, playRect, 1f, playStart, 0.38f, 32f, Vector3.right);
+            yield return AnimateCanvasAndPosition(title, titleRect, titleStart, 0.75f, 70f, Vector3.left);
+            yield return AnimateCanvasAndPosition(subtitle, null, Vector3.zero, 0.42f, 0f, Vector3.zero);
+            yield return new WaitForSecondsRealtime(Mathf.Max(0f, menuDelay - titleDelay));
+            yield return AnimateCanvasAndPosition(navigation, navigationRect, navigationStart, 0.6f, 80f, Vector3.right);
+            yield return AnimateCanvasAndPosition(playButton, playRect, playStart, 0.38f, 32f, Vector3.right);
             yield return new WaitForSecondsRealtime(buttonGap);
-            yield return AnimateCanvasAndPosition(quitButton, quitRect, 1f, quitStart, 0.34f, 32f, Vector3.right);
-            yield return FadeCanvas(meta, 1f, 0.3f);
-
+            yield return AnimateCanvasAndPosition(quitButton, quitRect, quitStart, 0.34f, 32f, Vector3.right);
             isReady = true;
             StartCoroutine(PulsePlayButton());
         }
@@ -119,27 +96,28 @@ namespace Muki.UI
             }
         }
 
-        private IEnumerator AnimateCanvasAndPosition(CanvasGroup group, RectTransform rect, float targetAlpha, Vector3 targetPosition, float duration, float distance, Vector3 direction)
+        private IEnumerator AnimateCanvasAndPosition(CanvasGroup group, RectTransform rect, Vector3 targetPosition, float duration, float distance, Vector3 direction)
         {
-            Vector3 startPosition = rect != null ? rect.localPosition : Vector3.zero;
+            if (group == null) yield break;
+            Vector3 startPosition = rect != null ? rect.localPosition : targetPosition;
             Vector3 fromPosition = targetPosition + direction * distance;
             if (rect != null) rect.localPosition = fromPosition;
-            float startAlpha = group.alpha;
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.unscaledDeltaTime;
                 float t = EaseOutCubic(Mathf.Clamp01(elapsed / duration));
-                group.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+                group.alpha = Mathf.Lerp(0f, 1f, t);
                 if (rect != null) rect.localPosition = Vector3.Lerp(fromPosition, startPosition, t);
                 yield return null;
             }
-            group.alpha = targetAlpha;
+            group.alpha = 1f;
             if (rect != null) rect.localPosition = startPosition;
         }
 
         private IEnumerator FadeCanvas(CanvasGroup group, float target, float duration)
         {
+            if (group == null) yield break;
             float start = group.alpha;
             float elapsed = 0f;
             while (elapsed < duration)
@@ -154,9 +132,14 @@ namespace Muki.UI
         private CanvasGroup GetOrAddCanvasGroup(string objectName)
         {
             Transform target = FindChild(objectName);
-            if (target == null) return gameObject.AddComponent<CanvasGroup>();
+            if (target == null) return null;
             CanvasGroup group = target.GetComponent<CanvasGroup>();
             return group != null ? group : target.gameObject.AddComponent<CanvasGroup>();
+        }
+
+        private static void SetAlpha(CanvasGroup group, float value)
+        {
+            if (group != null) group.alpha = value;
         }
 
         private RectTransform FindRect(string objectName) => FindChild(objectName) as RectTransform;

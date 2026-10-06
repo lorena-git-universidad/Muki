@@ -8,6 +8,13 @@ namespace StarterAssets
     {
         [Header("UI")]
         public TMP_Text mineralText;
+        public ChestUIVisual visual;
+
+        private void Awake()
+        {
+            if (visual == null)
+                visual = GetComponentInChildren<ChestUIVisual>(true);
+        }
 
         public void UpdateText(int current, int maximum)
         {
@@ -15,6 +22,8 @@ namespace StarterAssets
                 return;
 
             mineralText.text = current + "/" + maximum;
+            if (visual != null)
+                visual.UpdateValue(current, maximum);
         }
 
         public void UpdateContents(string contents)
@@ -23,6 +32,8 @@ namespace StarterAssets
                 return;
 
             mineralText.text = contents;
+            if (visual != null)
+                visual.UpdateContents(contents);
         }
     }
 }

@@ -16,6 +16,10 @@ namespace StarterAssets
 
         private float currentMiningTime;
 
+        public float MiningProgress => requiredMiningTime > 0f
+            ? Mathf.Clamp01(currentMiningTime / requiredMiningTime)
+            : 0f;
+
         public bool Mine(float deltaTime)
         {
             currentMiningTime += deltaTime;
@@ -66,7 +70,7 @@ namespace StarterAssets
                 }
 
                 //--------------------------------------------------
-                // Física de caída
+                // Fï¿½sica de caï¿½da
                 //--------------------------------------------------
 
                 Rigidbody rb = rock.GetComponent<Rigidbody>();
