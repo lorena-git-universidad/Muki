@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -30,6 +31,7 @@ namespace StarterAssets
         public Transform player;
         public NavMeshAgent agent;
         public PlayerHide playerHide;
+        public Animator animator;
 
 
         // =========================================================
@@ -77,6 +79,25 @@ namespace StarterAssets
 
         private float attackTimer = 0f;
 
+        [Tooltip("Tiempo que dura la animación de ataque antes de reaparecer al jugador.")]
+        public float attackAnimationDuration = 1.2f;
+
+        private bool isPerformingAttack = false;
+
+
+        // =========================================================
+        // PROTECCIÓN DESPUÉS DE MATAR
+        // =========================================================
+
+        [Header("Después de matar al jugador")]
+        [Tooltip("Tiempo durante el cual Muki no vuelve a detectar ni atacar al jugador.")]
+        public float postKillProtectionTime = 10f;
+
+        [Tooltip("Distancia mínima deseada entre Muki y el jugador después de matarlo.")]
+        public float postKillMinDistance = 20f;
+
+        private float postKillProtectionTimer = 0f;
+
 
         // =========================================================
         // INVESTIGACIÓN
@@ -85,11 +106,18 @@ namespace StarterAssets
         [Header("Investigación de ruido")]
         public float searchTime = 3f;
 
+        [Tooltip("Tiempo que Muki permanece quieto investigando el punto del ruido.")]
+        public float investigationWaitTime = 3f;
+
         private float searchTimer = 0f;
 
         private bool investigatingNoise = false;
 
         private Transform noisePatrolPoint;
+
+        private bool waitingAtNoisePoint = false;
+
+        private float noiseWaitTimer = 0f;
 
 
         // =========================================================
@@ -167,6 +195,14 @@ namespace StarterAssets
 
 
             // -----------------------------------------------------
+            // ANIMATOR
+            // -----------------------------------------------------
+
+            if (animator == null)
+                animator = GetComponentInChildren<Animator>();
+
+
+            // -----------------------------------------------------
             // ALTARES
             // -----------------------------------------------------
 
@@ -237,6 +273,8 @@ namespace StarterAssets
                 false;
 
             GoToNextPatrolPoint();
+
+            UpdateAnimations();
         }
 
 
@@ -265,6 +303,17 @@ namespace StarterAssets
                 attackTimer -= Time.deltaTime;
 
 
+            // -----------------------------------------------------
+            // PROTECCIÓN DESPUÉS DE MATAR
+            // -----------------------------------------------------
+
+            if (postKillProtectionTimer > 0f)
+            {
+                postKillProtectionTimer -=
+                    Time.deltaTime;
+            }
+
+
             // =====================================================
             // ALTAR ACTIVO
             // =====================================================
@@ -277,6 +326,8 @@ namespace StarterAssets
                 }
 
                 Calm();
+
+                UpdateAnimations();
 
                 return;
             }
@@ -322,6 +373,58 @@ namespace StarterAssets
 
                     break;
             }
+
+
+            // =====================================================
+            // ANIMACIONES
+            // =====================================================
+
+            UpdateAnimations();
+        }
+
+
+        // =========================================================
+        // ANIMACIONES
+        // =========================================================
+
+        private void UpdateAnimations()
+        {
+            if (animator == null)
+                return;
+
+
+            // -----------------------------------------------------
+            // ¿MUKI SE ESTÁ MOVIENDO?
+            // -----------------------------------------------------
+
+            bool isWalking =
+                agent != null &&
+                !agent.isStopped &&
+                agent.velocity.magnitude > 0.1f;
+
+
+            // -----------------------------------------------------
+            // ¿ESTÁ PERSIGUIENDO?
+            // -----------------------------------------------------
+
+            bool isChasing =
+                currentState ==
+                EnemyState.Chasing;
+
+
+            // -----------------------------------------------------
+            // ENVIAR DATOS AL ANIMATOR
+            // -----------------------------------------------------
+
+            animator.SetBool(
+                "IsWalking",
+                isWalking
+            );
+
+            animator.SetBool(
+                "IsChasing",
+                isChasing
+            );
         }
 
 
@@ -339,23 +442,30 @@ namespace StarterAssets
 
 
             // -----------------------------------------------------
-            // DETECTAR JUGADOR
+            // PROTECCIÓN DESPUÉS DE MATAR
             // -----------------------------------------------------
 
-            if (IsPlayerDetectable())
+            // Durante estos segundos Muki puede seguir caminando,
+            // pero NO detectará ni perseguirá al jugador.
+
+            if (postKillProtectionTimer <= 0f)
             {
-                float distanceToPlayer =
-                    Vector3.Distance(
-                        transform.position,
-                        player.position
-                    );
-
-
-                if (distanceToPlayer <= detectionRange)
+                if (IsPlayerDetectable())
                 {
-                    StartChasing();
+                    float distanceToPlayer =
+                        Vector3.Distance(
+                            transform.position,
+                            player.position
+                        );
 
-                    return;
+
+                    if (distanceToPlayer <=
+                        detectionRange)
+                    {
+                        StartChasing();
+
+                        return;
+                    }
                 }
             }
 
@@ -427,6 +537,15 @@ namespace StarterAssets
 
         private void StartChasing()
         {
+            // Durante la protección no puede perseguir.
+            if (postKillProtectionTimer > 0f)
+                return;
+
+
+            if (isPerformingAttack)
+                return;
+
+
             currentState =
                 EnemyState.Chasing;
 
@@ -449,6 +568,27 @@ namespace StarterAssets
 
         private void ChasePlayer()
         {
+            // -----------------------------------------------------
+            // PROTECCIÓN
+            // -----------------------------------------------------
+
+            if (postKillProtectionTimer > 0f)
+            {
+                currentState =
+                    EnemyState.Patrolling;
+
+                agent.speed =
+                    patrolSpeed;
+
+                agent.isStopped =
+                    false;
+
+                GoToNextPatrolPoint();
+
+                return;
+            }
+
+
             // -----------------------------------------------------
             // ZONA SEGURA
             // -----------------------------------------------------
@@ -546,17 +686,86 @@ namespace StarterAssets
                 return;
 
 
+            if (isPerformingAttack)
+                return;
+
+
+            if (postKillProtectionTimer > 0f)
+                return;
+
+
+            StartCoroutine(
+                PerformAttack()
+            );
+        }
+
+
+        // =========================================================
+        // CORRUTINA DEL ATAQUE
+        // =========================================================
+
+        private IEnumerator PerformAttack()
+        {
+            isPerformingAttack = true;
+
+
+            // -----------------------------------------------------
+            // COOLDOWN
+            // -----------------------------------------------------
+
             attackTimer =
                 attackCooldown;
 
 
+            // -----------------------------------------------------
+            // DETENER A MUKI
+            // -----------------------------------------------------
+
+            if (agent != null)
+            {
+                agent.isStopped = true;
+
+                agent.ResetPath();
+            }
+
+
+            // -----------------------------------------------------
+            // ESTADO DE PERSECUCIÓN SE MANTIENE
+            // -----------------------------------------------------
+
+            currentState =
+                EnemyState.Chasing;
+
+
+            // -----------------------------------------------------
+            // ANIMACIÓN DE ATAQUE
+            // -----------------------------------------------------
+
+            if (animator != null)
+            {
+                animator.ResetTrigger("Attack");
+
+                animator.SetTrigger("Attack");
+            }
+
+
             Debug.Log(
-                "¡Muki atrapó al jugador!"
+                "¡Muki atrapó al jugador! " +
+                "Reproduciendo animación de ataque."
+            );
+
+
+            // -----------------------------------------------------
+            // ESPERAR LA ANIMACIÓN
+            // -----------------------------------------------------
+
+            yield return new WaitForSeconds(
+                attackAnimationDuration
             );
 
 
             // =====================================================
-            // REGRESAR AL ÚLTIMO CHECKPOINT
+            // REGRESAR AL CHECKPOINT
             // =====================================================
 
             if (PlayerRespawn.Instance != null)
@@ -573,11 +782,16 @@ namespace StarterAssets
 
 
             // =====================================================
-            // REINICIAR COMPORTAMIENTO DEL MUKI
+            // ACTIVAR PROTECCIÓN
             // =====================================================
 
-            currentState =
-                EnemyState.Patrolling;
+            postKillProtectionTimer =
+                postKillProtectionTime;
+
+
+            // =====================================================
+            // LIMPIAR ESTADO ANTERIOR
+            // =====================================================
 
             investigatingNoise =
                 false;
@@ -585,11 +799,111 @@ namespace StarterAssets
             noisePatrolPoint =
                 null;
 
+            waitingAtNoisePoint =
+                false;
+
+            noiseWaitTimer =
+                0f;
+
             calmPatrolTarget =
                 null;
 
             patrolTimer =
                 0f;
+
+
+            // =====================================================
+            // BUSCAR PUNTO LEJANO
+            // =====================================================
+
+            Transform safePatrolPoint =
+                GetSafePostKillPatrolPoint();
+
+
+            // =====================================================
+            // MOVER A MUKI
+            // =====================================================
+
+            if (safePatrolPoint != null)
+            {
+                MoveMukiToPatrolPoint(
+                    safePatrolPoint
+                );
+            }
+            else
+            {
+                currentState =
+                    EnemyState.Patrolling;
+
+                agent.speed =
+                    patrolSpeed;
+
+                agent.isStopped =
+                    false;
+
+                GoToNextPatrolPoint();
+            }
+
+
+            isPerformingAttack =
+                false;
+
+
+            Debug.Log(
+                "Muki se alejó después de matar al jugador. " +
+                "No podrá detectarlo durante " +
+                postKillProtectionTime +
+                " segundos."
+            );
+        }
+
+
+        // =========================================================
+        // MOVER MUKI A UN PUNTO LEJANO
+        // =========================================================
+
+        private void MoveMukiToPatrolPoint(
+            Transform target)
+        {
+            if (target == null)
+                return;
+
+
+            NavMeshHit navHit;
+
+
+            // -----------------------------------------------------
+            // BUSCAR POSICIÓN VÁLIDA EN NAVMESH
+            // -----------------------------------------------------
+
+            if (NavMesh.SamplePosition(
+                target.position,
+                out navHit,
+                3f,
+                NavMesh.AllAreas))
+            {
+                agent.Warp(
+                    navHit.position
+                );
+            }
+
+
+            // -----------------------------------------------------
+            // ACTUALIZAR ÍNDICE
+            // -----------------------------------------------------
+
+            currentPatrolIndex =
+                GetPatrolPointIndex(
+                    target
+                );
+
+
+            // -----------------------------------------------------
+            // VOLVER A PATRULLAR
+            // -----------------------------------------------------
+
+            currentState =
+                EnemyState.Patrolling;
 
             agent.speed =
                 patrolSpeed;
@@ -599,7 +913,98 @@ namespace StarterAssets
 
             agent.ResetPath();
 
+
+            // Continuar hacia el siguiente punto.
             GoToNextPatrolPoint();
+        }
+
+
+        // =========================================================
+        // OBTENER ÍNDICE DEL PUNTO
+        // =========================================================
+
+        private int GetPatrolPointIndex(
+            Transform target)
+        {
+            if (patrolPoints == null)
+                return 0;
+
+
+            for (
+                int i = 0;
+                i < patrolPoints.Length;
+                i++)
+            {
+                if (patrolPoints[i] == target)
+                    return i;
+            }
+
+
+            return 0;
+        }
+
+
+        // =========================================================
+        // OBTENER PUNTO SEGURO DESPUÉS DE MATAR
+        // =========================================================
+
+        private Transform GetSafePostKillPatrolPoint()
+        {
+            if (patrolPoints == null ||
+                patrolPoints.Length == 0)
+            {
+                return null;
+            }
+
+
+            Transform safePoint =
+                null;
+
+            float bestDistance =
+                -1f;
+
+
+            // -----------------------------------------------------
+            // PRIMERO: BUSCAR UNO QUE ESTÉ REALMENTE LEJOS
+            // -----------------------------------------------------
+
+            foreach (
+                Transform point
+                in patrolPoints)
+            {
+                if (point == null)
+                    continue;
+
+
+                float distance =
+                    Vector3.Distance(
+                        point.position,
+                        player.position
+                    );
+
+
+                if (distance >=
+                    postKillMinDistance &&
+                    distance > bestDistance)
+                {
+                    bestDistance =
+                        distance;
+
+                    safePoint =
+                        point;
+                }
+            }
+
+
+            if (safePoint != null)
+                return safePoint;
+
+
+            // -----------------------------------------------------
+            // SI NINGUNO CUMPLE, USAR EL MÁS LEJANO
+            // -----------------------------------------------------
+
+            return GetFarthestPatrolPoint();
         }
 
 
@@ -640,21 +1045,24 @@ namespace StarterAssets
             // DETECTAR NUEVAMENTE
             // -----------------------------------------------------
 
-            if (IsPlayerDetectable())
+            if (postKillProtectionTimer <= 0f)
             {
-                float distanceToPlayer =
-                    Vector3.Distance(
-                        transform.position,
-                        player.position
-                    );
-
-
-                if (distanceToPlayer <=
-                    detectionRange)
+                if (IsPlayerDetectable())
                 {
-                    StartChasing();
+                    float distanceToPlayer =
+                        Vector3.Distance(
+                            transform.position,
+                            player.position
+                        );
 
-                    return;
+
+                    if (distanceToPlayer <=
+                        detectionRange)
+                    {
+                        StartChasing();
+
+                        return;
+                    }
                 }
             }
 
@@ -692,6 +1100,22 @@ namespace StarterAssets
             float noiseRadius,
             string noiseType)
         {
+            // -----------------------------------------------------
+            // PROTECCIÓN
+            // -----------------------------------------------------
+
+            if (postKillProtectionTimer > 0f)
+                return;
+
+
+            // -----------------------------------------------------
+            // ATAQUE
+            // -----------------------------------------------------
+
+            if (isPerformingAttack)
+                return;
+
+
             // -----------------------------------------------------
             // ALTAR
             // -----------------------------------------------------
@@ -752,7 +1176,8 @@ namespace StarterAssets
             // PUNTO MÁS CERCANO
             // -----------------------------------------------------
 
-            Transform closestPoint = null;
+            Transform closestPoint =
+                null;
 
             float closestDistance =
                 Mathf.Infinity;
@@ -800,6 +1225,12 @@ namespace StarterAssets
 
             investigatingNoise =
                 true;
+
+            waitingAtNoisePoint =
+                false;
+
+            noiseWaitTimer =
+                0f;
 
             noisePatrolPoint =
                 closestPoint;
@@ -851,6 +1282,9 @@ namespace StarterAssets
                 investigatingNoise =
                     false;
 
+                waitingAtNoisePoint =
+                    false;
+
                 noisePatrolPoint =
                     null;
 
@@ -859,6 +1293,9 @@ namespace StarterAssets
 
                 agent.speed =
                     patrolSpeed;
+
+                agent.isStopped =
+                    false;
 
                 GoToNextPatrolPoint();
 
@@ -870,7 +1307,8 @@ namespace StarterAssets
             // DETECTAR JUGADOR
             // -----------------------------------------------------
 
-            if (IsPlayerDetectable())
+            if (!waitingAtNoisePoint &&
+                IsPlayerDetectable())
             {
                 float distanceToPlayer =
                     Vector3.Distance(
@@ -904,8 +1342,14 @@ namespace StarterAssets
                 investigatingNoise =
                     false;
 
+                waitingAtNoisePoint =
+                    false;
+
                 currentState =
                     EnemyState.Patrolling;
+
+                agent.isStopped =
+                    false;
 
                 GoToNextPatrolPoint();
 
@@ -913,32 +1357,94 @@ namespace StarterAssets
             }
 
 
-            // -----------------------------------------------------
-            // LLEGÓ AL RUIDO
-            // -----------------------------------------------------
+            // =====================================================
+            // YA ESTÁ ESPERANDO EN EL PUNTO
+            // =====================================================
+
+            if (waitingAtNoisePoint)
+            {
+                agent.isStopped =
+                    true;
+
+                noiseWaitTimer -=
+                    Time.deltaTime;
+
+
+                if (noiseWaitTimer <= 0f)
+                {
+                    waitingAtNoisePoint =
+                        false;
+
+                    investigatingNoise =
+                        false;
+
+                    noisePatrolPoint =
+                        null;
+
+                    currentState =
+                        EnemyState.Patrolling;
+
+                    patrolTimer =
+                        0f;
+
+                    agent.isStopped =
+                        false;
+
+                    GoToNextPatrolPoint();
+
+                    Debug.Log(
+                        "Muki terminó de investigar " +
+                        "y continúa patrullando."
+                    );
+                }
+
+                return;
+            }
+
+
+            // =====================================================
+            // LLEGÓ AL PUNTO DEL RUIDO
+            // =====================================================
 
             if (!agent.pathPending &&
                 agent.remainingDistance <=
                 agent.stoppingDistance)
             {
                 Debug.Log(
-                    "Muki llegó al lugar del ruido."
+                    "Muki llegó al lugar del ruido. " +
+                    "Ahora esperará."
                 );
 
 
-                investigatingNoise =
-                    false;
+                // -------------------------------------------------
+                // DETENER MUKI
+                // -------------------------------------------------
 
-                noisePatrolPoint =
-                    null;
+                agent.isStopped =
+                    true;
 
-                currentState =
-                    EnemyState.Patrolling;
 
-                patrolTimer =
-                    0f;
+                agent.ResetPath();
 
-                GoToNextPatrolPoint();
+
+                // -------------------------------------------------
+                // ACTIVAR ESPERA
+                // -------------------------------------------------
+
+                waitingAtNoisePoint =
+                    true;
+
+                noiseWaitTimer =
+                    investigationWaitTime;
+
+
+                // -------------------------------------------------
+                // IMPORTANTE:
+                // IsWalking pasa automáticamente a FALSE
+                // y el Animator reproduce IDLE.
+                // -------------------------------------------------
+
+                return;
             }
         }
 
@@ -949,6 +1455,22 @@ namespace StarterAssets
 
         private bool IsPlayerDetectable()
         {
+            // -----------------------------------------------------
+            // PROTECCIÓN
+            // -----------------------------------------------------
+
+            if (postKillProtectionTimer > 0f)
+                return false;
+
+
+            // -----------------------------------------------------
+            // ATAQUE
+            // -----------------------------------------------------
+
+            if (isPerformingAttack)
+                return false;
+
+
             // -----------------------------------------------------
             // ALTAR
             // -----------------------------------------------------
@@ -1271,8 +1793,6 @@ namespace StarterAssets
             if (currentState ==
                 EnemyState.InvestigatingNoise)
             {
-                // Sonido que ocurre una sola vez
-
                 if (investigationStartSound != null)
                 {
                     oneShotAudio.PlayOneShot(
@@ -1280,8 +1800,6 @@ namespace StarterAssets
                     );
                 }
 
-
-                // Loop mientras investiga
 
                 if (investigationLoopSound != null)
                 {
@@ -1323,9 +1841,6 @@ namespace StarterAssets
             else
             {
                 // El loop ya fue detenido arriba.
-                //
-                // El sonido de inicio de investigación
-                // NO se corta y puede terminar naturalmente.
             }
         }
     }
