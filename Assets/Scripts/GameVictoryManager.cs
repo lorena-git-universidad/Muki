@@ -29,6 +29,10 @@ namespace StarterAssets
         public TMP_Text coalCounterText;
         public GameObject victoryPanel;
 
+        [Header("Victory Scene")]
+        public string victorySceneName = "Victoria";
+        public float loadDelay = 1.5f;
+
         public bool ExitUnlocked { get; private set; }
         public bool HasWon { get; private set; }
 
@@ -143,6 +147,17 @@ namespace StarterAssets
 
             if (victoryPanel != null)
                 victoryPanel.SetActive(true);
+
+            // Deja ver un instante el escape y pasa a la escena de victoria.
+            Invoke(nameof(LoadVictoryScene), loadDelay);
+        }
+
+        private void LoadVictoryScene()
+        {
+            if (Application.CanStreamedLevelBeLoaded(victorySceneName))
+                UnityEngine.SceneManagement.SceneManager.LoadScene(victorySceneName);
+            else
+                Debug.LogError("No se encontro la escena " + victorySceneName + ". Agregala a Build Settings.");
         }
     }
 }
