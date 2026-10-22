@@ -66,6 +66,12 @@ namespace StarterAssets
             if (chest == null || HasWon || ExitUnlocked)
                 return;
 
+            if (PlayerLives.Instance != null &&
+                PlayerLives.Instance.IsGameOver)
+            {
+                return;
+            }
+
             bool allRequirementsMet = true;
 
             foreach (MineralRequirement requirement in requirements)
@@ -140,6 +146,16 @@ namespace StarterAssets
         {
             if (HasWon || !ExitUnlocked)
                 return;
+
+            if (PlayerLives.Instance != null &&
+                PlayerLives.Instance.IsGameOver)
+            {
+                Debug.LogWarning(
+                    "No se puede ganar: la partida ya terminó en derrota."
+                );
+
+                return;
+            }
 
             HasWon = true;
 

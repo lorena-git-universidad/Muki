@@ -15031,7 +15031,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8762286023885395322, guid: 9c489a8547f4d9e4387da15a4ff82c81, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.52349997
+      value: 0.057500005
       objectReference: {fileID: 0}
     - target: {fileID: 8762286023885395322, guid: 9c489a8547f4d9e4387da15a4ff82c81, type: 3}
       propertyPath: m_LocalPosition.z
@@ -15793,6 +15793,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 814167259}
   m_CullTransparentMesh: 1
+--- !u!4 &814958020 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8762286023885395322, guid: 9c489a8547f4d9e4387da15a4ff82c81, type: 3}
+  m_PrefabInstance: {fileID: 748711428}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &821804385
 GameObject:
   m_ObjectHideFlags: 0
@@ -20799,7 +20804,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 652, y: -260}
+  m_AnchoredPosition: {x: 675, y: 290}
   m_SizeDelta: {x: 400, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1060095035
@@ -33065,7 +33070,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.164
+      value: -0.63
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalPosition.z
@@ -33073,7 +33078,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.99730855
+      value: 0.9997547
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalRotation.x
@@ -33081,7 +33086,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.073318265
+      value: 0.022149596
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalRotation.z
@@ -33093,7 +33098,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -8.409
+      value: 2.538
       objectReference: {fileID: 0}
     - target: {fileID: 8997996947095583982, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -33131,6 +33136,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8616685848737228372, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1589027497}
+    - targetCorrespondingSourceObject: {fileID: 8616685848737228372, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1589027499}
     - targetCorrespondingSourceObject: {fileID: 4135013735270702863, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1589027482}
@@ -33249,6 +33257,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.PlayerHide
   controller: {fileID: 1589027491}
   movement: {fileID: 1589027484}
+  cameraPivot: {fileID: 814958020}
+  mukiTransform: {fileID: 450731782}
+  useFixedWorldY: 1
+  fixedWorldY: -0.64
+  hiddenRotationX: 180
+  hiddenRotationZ: 180
+  enterAnimationDuration: 0.95
+  jumpHeight: 0.45
+  cameraRiseHeight: 0.41
+  cameraTurnDegrees: 180
+  hiddenCameraOffset: {x: 0, y: 0.22, z: 0.08}
+  mukiMustMoveAwayDistance: 5
+  protectionDuration: 5
 --- !u!143 &1589027491 stripped
 CharacterController:
   m_CorrespondingSourceObject: {fileID: 8616685848737228382, guid: c5efc39a8aaf6e64ea40e9ad573e9b47, type: 3}
@@ -33268,6 +33289,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.PlayerMining
   playerCamera: {fileID: 1041668334}
   pickaxeHolder: {fileID: 1447187923}
+  playerAnimator: {fileID: 0}
   interactionDistance: 3.5
   mineableLayer:
     serializedVersion: 2
@@ -33276,6 +33298,7 @@ MonoBehaviour:
   equippedRotation: {x: 0, y: 0, z: 0}
   swingSpeed: 12
   swingAngle: 35
+  miningAnimationName: picar_manoDer
   hasPickaxe: 0
   miningProgressUI: {fileID: 0}
   equippedPickaxe: {fileID: 0}
@@ -33325,6 +33348,19 @@ MonoBehaviour:
   footstepIntervalWalk: 0.5
   footstepIntervalSprint: 0.3
   footstepIntervalCrouch: 0.7
+--- !u!114 &1589027499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 47389866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a0f3bfa046c2314d95621fb2ad57ad0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.PlayerLives
+  startingLives: 3
 --- !u!1 &1589755142
 GameObject:
   m_ObjectHideFlags: 0
@@ -47548,7 +47584,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8818136456126946213, guid: 4496b8290ab1a074f94b47681b26bf92, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
