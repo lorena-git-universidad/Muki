@@ -25,8 +25,17 @@ namespace Muki.UI
 
         private void Update()
         {
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-                TogglePause();
+            if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame)
+                return;
+
+            // Con "Cómo se juega" abierto, Esc solo cierra esa pantalla.
+            if (ControlsPanel.Instance != null && ControlsPanel.Instance.IsOpen)
+            {
+                ControlsPanel.Instance.Close();
+                return;
+            }
+
+            TogglePause();
         }
 
         public void TogglePause()

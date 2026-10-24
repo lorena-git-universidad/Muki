@@ -8,16 +8,19 @@ namespace Muki.UI
         [SerializeField] private CanvasGroup title;
         [SerializeField] private CanvasGroup playButton;
         [SerializeField] private CanvasGroup upcomingButton;
+        [SerializeField] private CanvasGroup upcomingButton2;
         [SerializeField] private CanvasGroup tooltip;
         [SerializeField] private RectTransform titleRect;
         [SerializeField] private RectTransform playRect;
         [SerializeField] private RectTransform upcomingRect;
+        [SerializeField] private RectTransform upcomingRect2;
 
         private void Awake()
         {
             SetAlpha(title, 0f);
             SetAlpha(playButton, 0f);
             SetAlpha(upcomingButton, 0f);
+            SetAlpha(upcomingButton2, 0f);
             SetAlpha(tooltip, 0f);
         }
 
@@ -33,11 +36,16 @@ namespace Muki.UI
             if (playRect != null) playRect.localPosition = playEnd + Vector3.right * 35f;
             if (upcomingRect != null) upcomingRect.localPosition = upcomingEnd + Vector3.right * 35f;
 
+            Vector3 upcomingEnd2 = upcomingRect2 != null ? upcomingRect2.localPosition : Vector3.zero;
+            if (upcomingRect2 != null) upcomingRect2.localPosition = upcomingEnd2 + Vector3.right * 35f;
+
             yield return Animate(title, titleRect, titleEnd, 0.55f);
             yield return new WaitForSecondsRealtime(0.12f);
             yield return Animate(playButton, playRect, playEnd, 0.38f);
             yield return new WaitForSecondsRealtime(0.1f);
             yield return Animate(upcomingButton, upcomingRect, upcomingEnd, 0.34f);
+            yield return new WaitForSecondsRealtime(0.1f);
+            yield return Animate(upcomingButton2, upcomingRect2, upcomingEnd2, 0.34f);
         }
 
         private static IEnumerator Animate(CanvasGroup group, RectTransform rect, Vector3 end, float duration)

@@ -14,6 +14,7 @@ namespace Muki.Editor
             AddIfMissing(scenes, "Assets/Scenes/EscenaPrueba.unity");
             AddIfMissing(scenes, "Assets/Scenes/EscenaJuego.unity");
             AddIfMissing(scenes, "Assets/Scenes/Victoria.unity");
+            AddIfMissing(scenes, "Assets/Scenes/Derrota.unity");
             EditorBuildSettings.scenes = scenes.ToArray();
             AssetDatabase.SaveAssets();
             UnityEngine.Debug.Log("Muki: EscenaPrueba agregada correctamente a Build Settings.");

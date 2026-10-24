@@ -11,6 +11,10 @@ namespace StarterAssets
         [Min(1)]
         public int startingLives = 3;
 
+        [Header("Escena de derrota")]
+        public string defeatSceneName = "Derrota";
+        public float defeatDelay = 1.5f;
+
         public int CurrentLives { get; private set; }
 
         public bool IsGameOver { get; private set; }
@@ -55,10 +59,21 @@ namespace StarterAssets
                     "DERROTA: el Muki atrapó al jugador tres veces."
                 );
 
+                // Deja ver un instante el final y pasa a la escena de derrota.
+                Invoke(nameof(LoadDefeatScene), defeatDelay);
+
                 return true;
             }
 
             return false;
+        }
+
+        private void LoadDefeatScene()
+        {
+            if (Application.CanStreamedLevelBeLoaded(defeatSceneName))
+                UnityEngine.SceneManagement.SceneManager.LoadScene(defeatSceneName);
+            else
+                Debug.LogError("No se encontro la escena " + defeatSceneName + ". Agregala a Build Settings.");
         }
     }
 }
