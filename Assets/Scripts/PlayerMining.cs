@@ -1,4 +1,6 @@
+
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace StarterAssets
 {
@@ -8,17 +10,26 @@ namespace StarterAssets
         public Camera playerCamera;
         public Transform pickaxeHolder;
 
+        [Tooltip("Animator del personaje minero, no el del pico.")]
+        public Animator playerAnimator;
+
         [Header("Interaction")]
         public float interactionDistance = 3.5f;
         public LayerMask mineableLayer;
 
         [Header("Pickaxe Position")]
-        public Vector3 equippedPosition = new Vector3(0.35f, -0.35f, 0.60f);
-        public Vector3 equippedRotation = new Vector3(15f, -80f, 20f);
+        public Vector3 equippedPosition =
+            new Vector3(0.35f, -0.35f, 0.60f);
+
+        public Vector3 equippedRotation =
+            new Vector3(15f, -80f, 20f);
 
         [Header("Animation")]
         public float swingSpeed = 12f;
         public float swingAngle = 35f;
+
+        [Tooltip("Nombre exacto del estado de picar en el Animator.")]
+        public string miningAnimationName = "picar_manoDer";
 
         [Header("State")]
         public bool hasPickaxe;
@@ -55,20 +66,37 @@ namespace StarterAssets
                     playerCamera.transform.Find("PickaxeHolder");
             }
 
+            if (playerAnimator == null)
+            {
+                playerAnimator = GetComponentInChildren<Animator>();
+            }
+
             if (miningProgressUI == null)
-                miningProgressUI = FindFirstObjectByType<MiningProgressUI>();
+            {
+                miningProgressUI =
+                    FindFirstObjectByType<MiningProgressUI>();
+            }
         }
 
         private void Update()
         {
             if (!hasPickaxe)
+            {
+                StopMining();
                 return;
+            }
 
             CheckMining();
         }
 
         private void CheckMining()
         {
+            if (playerCamera == null)
+            {
+                StopMining();
+                return;
+            }
+
             Ray ray = new Ray(
                 playerCamera.transform.position,
                 playerCamera.transform.forward
@@ -93,15 +121,20 @@ namespace StarterAssets
                 return;
             }
 
-            if (UnityEngine.InputSystem.Keyboard.current == null ||
-                !UnityEngine.InputSystem.Keyboard.current.eKey.isPressed)
+            if (Keyboard.current == null ||
+                !Keyboard.current.eKey.isPressed)
             {
                 StopMining();
                 return;
             }
 
             currentRock = rock;
-            isMining = true;
+
+            if (!isMining)
+            {
+                isMining = true;
+                PlayMiningAnimation();
+            }
 
             AnimatePickaxe();
 
@@ -109,7 +142,11 @@ namespace StarterAssets
                 currentRock.Mine(Time.deltaTime);
 
             if (miningProgressUI != null)
-                miningProgressUI.ShowProgress(currentRock.MiningProgress);
+            {
+                miningProgressUI.ShowProgress(
+                    currentRock.MiningProgress
+                );
+            }
 
             if (finished)
             {
@@ -117,15 +154,35 @@ namespace StarterAssets
             }
         }
 
+        private void PlayMiningAnimation()
+        {
+            if (playerAnimator == null)
+                return;
+
+            playerAnimator.Play(
+                miningAnimationName,
+                0,
+                0f
+            );
+        }
+
         private void StopMining()
         {
-            if (!isMining)
-                return;
+            bool wasMining = isMining;
 
             isMining = false;
 
+            if (wasMining && playerAnimator != null)
+            {
+                // Regresa al estado por defecto del Animator,
+                // que debe ser el idle del personaje.
+                playerAnimator.Play("picomano_manoDer", 0, 0f);
+            }
+
             if (miningProgressUI != null)
+            {
                 miningProgressUI.HideProgress();
+            }
 
             if (currentRock != null)
             {
@@ -144,7 +201,7 @@ namespace StarterAssets
             if (pickaxeHolder == null)
             {
                 Debug.LogError(
-                    "No se encontr� PickaxeHolder."
+                    "No se encontró PickaxeHolder."
                 );
 
                 return false;
@@ -153,10 +210,7 @@ namespace StarterAssets
             equippedPickaxe = pickaxeObject;
             hasPickaxe = true;
 
-            // ==========================================
-            // DESACTIVAR F�SICA DEL PICO
-            // ==========================================
-
+            // Desactivar la física del pico.
             Collider[] cols =
                 equippedPickaxe.GetComponentsInChildren<Collider>();
 
@@ -174,20 +228,23 @@ namespace StarterAssets
                 rb.useGravity = false;
             }
 
-            // ==========================================
-            // IGNORAR RAYCAST
-            // ==========================================
-
-            equippedPickaxe.layer =
+            // Ignorar raycasts con el pico equipado.
+            int ignoreRaycastLayer =
                 LayerMask.NameToLayer("Ignore Raycast");
 
-            // ==========================================
-            // PASAR A LA C�MARA
-            // ==========================================
+            if (ignoreRaycastLayer != -1)
+            {
+                equippedPickaxe.layer = ignoreRaycastLayer;
 
-            equippedPickaxe.transform.SetParent(
-                pickaxeHolder
-            );
+                foreach (Transform child in
+                         equippedPickaxe.GetComponentsInChildren<Transform>())
+                {
+                    child.gameObject.layer = ignoreRaycastLayer;
+                }
+            }
+
+            // Colocar el pico en la cámara.
+            equippedPickaxe.transform.SetParent(pickaxeHolder);
 
             equippedPickaxe.transform.localPosition =
                 equippedPosition;
@@ -201,22 +258,13 @@ namespace StarterAssets
             baseRotation =
                 equippedPickaxe.transform.localRotation;
 
-            // ==========================================
-            // HACER INVISIBLE EL PICO F�SICO
-            // ==========================================
-
+            // Ocultar el sprite del pico físico.
             SetPickaxeVisible(false);
 
-            Debug.Log(
-                "Pico equipado. Pico f�sico oculto."
-            );
+            Debug.Log("Pico equipado. Pico físico oculto.");
 
             return true;
         }
-
-        // ==========================================
-        // MOSTRAR / OCULTAR PICO F�SICO
-        // ==========================================
 
         public void SetPickaxeVisible(bool visible)
         {
@@ -232,17 +280,12 @@ namespace StarterAssets
             }
         }
 
-        // ==========================================
-        // ANIMACI�N DE MINADO ACTUAL
-        // ==========================================
-
         private void AnimatePickaxe()
         {
             if (equippedPickaxe == null)
                 return;
 
-            swingTimer +=
-                Time.deltaTime * swingSpeed;
+            swingTimer += Time.deltaTime * swingSpeed;
 
             float angle =
                 Mathf.Sin(swingTimer) * swingAngle;
@@ -278,10 +321,6 @@ namespace StarterAssets
                 baseRotation;
         }
 
-        // ==========================================
-        // ANIMATOR DEL PICO
-        // ==========================================
-
         public Animator PickaxeAnimator
         {
             get
@@ -289,7 +328,8 @@ namespace StarterAssets
                 if (pickaxeHolder == null)
                     return null;
 
-                return pickaxeHolder.GetComponentInChildren<Animator>();
+                return pickaxeHolder
+                    .GetComponentInChildren<Animator>();
             }
         }
     }

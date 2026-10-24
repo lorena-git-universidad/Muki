@@ -759,13 +759,50 @@ namespace StarterAssets
             // ESPERAR LA ANIMACIÓN
             // -----------------------------------------------------
 
+
             yield return new WaitForSeconds(
                 attackAnimationDuration
             );
 
+            // =====================================================
+            // REGISTRAR CAPTURA Y DESCONTAR UNA VIDA
+            // =====================================================
+
+            if (PlayerLives.Instance != null)
+            {
+                bool gameOver = PlayerLives.Instance.RegisterCapture();
+
+                if (gameOver)
+                {
+                    // No reaparecer si se terminaron las vidas.
+                    if (agent != null)
+                    {
+                        agent.isStopped = true;
+                        agent.ResetPath();
+                    }
+
+                    Debug.LogError(
+                        "PARTIDA TERMINADA: el jugador perdió todas sus vidas."
+                    );
+
+                    isPerformingAttack = false;
+
+                    // Detener la IA del Muki después de la derrota.
+                    enabled = false;
+
+                    yield break;
+                }
+            }
+            else
+            {
+                Debug.LogError(
+                    "No se encontró PlayerLives. " +
+                    "Añade el componente al jugador."
+                );
+            }
 
             // =====================================================
-            // REGRESAR AL CHECKPOINT
+            // REGRESAR AL CHECKPOINT SI AÚN TIENE VIDAS
             // =====================================================
 
             if (PlayerRespawn.Instance != null)
@@ -775,10 +812,11 @@ namespace StarterAssets
             else
             {
                 Debug.LogWarning(
-                    "Muki intentó matar al jugador, " +
-                    "pero no existe PlayerRespawn.Instance."
+                    "No existe PlayerRespawn.Instance."
                 );
             }
+
+           
 
 
             // =====================================================

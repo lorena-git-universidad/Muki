@@ -45,6 +45,16 @@ namespace StarterAssets
 
         public void Respawn()
         {
+            if (PlayerLives.Instance != null &&
+            PlayerLives.Instance.IsGameOver)
+            {
+                Debug.LogWarning(
+                    "Respawn cancelado: el jugador ya perdió la partida."
+                );
+
+                return;
+            }
+
             Vector3 respawnPosition;
             Quaternion respawnRotation;
 
