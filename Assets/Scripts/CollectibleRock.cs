@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 namespace StarterAssets
@@ -25,14 +26,9 @@ namespace StarterAssets
             if (Time.time - spawnTime < pickupDelay)
                 return;
 
-            if (other.CompareTag("Player") ||
-                other.GetComponent<CharacterController>() != null ||
-                other.GetComponentInParent<StarterAssetsInputs>() != null)
+            if (IsPlayer(other))
             {
-                if (InventoryManager.Instance.AddItem(itemData))
-                {
-                    Destroy(gameObject);
-                }
+                TryCollectRock();
             }
         }
 
@@ -41,16 +37,33 @@ namespace StarterAssets
             if (Time.time - spawnTime < pickupDelay)
                 return;
 
-            Collider other = collision.collider;
-
-            if (other.CompareTag("Player") ||
-                other.GetComponent<CharacterController>() != null ||
-                other.GetComponentInParent<StarterAssetsInputs>() != null)
+            if (IsPlayer(collision.collider))
             {
-                if (InventoryManager.Instance.AddItem(itemData))
+                TryCollectRock();
+            }
+        }
+
+        private bool IsPlayer(Collider other)
+        {
+            return other.CompareTag("Player") ||
+                   other.GetComponent<CharacterController>() != null ||
+                   other.GetComponentInParent<StarterAssetsInputs>() != null;
+        }
+
+        private void TryCollectRock()
+        {
+            if (InventoryManager.Instance == null)
+                return;
+
+            if (InventoryManager.Instance.AddItem(itemData))
+            {
+                // Reproducir el sonido cuando la roca se recoge correctamente.
+                if (AudioManager.Instance != null)
                 {
-                    Destroy(gameObject);
+                    AudioManager.Instance.PlaySound("Recoger_Objeto");
                 }
+
+                Destroy(gameObject);
             }
         }
     }

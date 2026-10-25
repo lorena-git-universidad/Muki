@@ -17,17 +17,23 @@ namespace StarterAssets
         public Transform mukiTransform;
 
         [Header("Posicion y rotacion del escondite")]
-        [Tooltip("Si esta activado, la posicion Y final de la capsula sera fija en el mundo.")]
-        public bool useFixedWorldY = true;
+        [Tooltip("Si esta activado, la altura final se calcula a partir del suelo " +
+                 "detectado en el collider de cada vagon. Si no, se usa Fixed World Y.")]
+        public bool useWagonFloor = true;
 
-        [Tooltip("Coordenada Y final de la capsula en el mundo.")]
+        [Tooltip("Altura del pivote del jugador respecto al suelo detectado del vagon. " +
+                 "Se ajusta UNA sola vez y sirve para todos los vagones.")]
+        public float pivotHeightAboveFloor = 0f;
+
+        [Tooltip("Solo se usa si Use Wagon Floor esta desactivado (comportamiento antiguo).")]
         public float fixedWorldY = -0.64f;
 
-        [Tooltip("Rotacion X final de la capsula.")]
-        public float hiddenRotationX = 180f;
+        [Tooltip("Giro del cuerpo respecto al frente del HidePoint. " +
+                 "Equivale al antiguo Euler(180, y, 180), que en realidad era un giro de 180 en Y.")]
+        public float bodyYawOffset = 180f;
 
-        [Tooltip("Rotacion Z final de la capsula.")]
-        public float hiddenRotationZ = 180f;
+        [Tooltip("Muestra en consola el suelo detectado y la Y final al entrar.")]
+        public bool debugLogs = true;
 
         [Header("Animacion de entrada")]
         [Tooltip("Duracion total de la animacion de entrada, en segundos.")]
@@ -143,7 +149,7 @@ namespace StarterAssets
 
             currentHidePoint = hidePoint;
 
-            // Guardar la posicion y rotacion originales para salir correctamente.
+            // Guardar la posicion y rotacion originales para salir correctamente. 
             exitPosition = transform.position;
             exitRotation = transform.rotation;
 
@@ -156,26 +162,33 @@ namespace StarterAssets
             IsHidden = true;
             enterFrame = Time.frameCount;
 
-            // Desactivar los controles mientras se ejecuta la animacion.
+            // Desactivar los controles mientras se ejecuta la animacion. 
             if (controller != null)
                 controller.enabled = false;
 
             if (movement != null)
                 movement.enabled = false;
 
-            // Obtener la posicion final del HidePoint.
+            // AUDIO: respiracion agitada mientras esta escondido
+            if (movement != null)
+                movement.StartHiddenBreathing();
+
+            // El HideSpot que contiene este HidePoint aporta la geometria del vagon.
+            HideSpot spot = hidePoint.GetComponentInParent<HideSpot>();
+
+            // XZ del HidePoint, Y calculada a partir del suelo del vagon.
             Vector3 targetPosition = hidePoint.position;
+            targetPosition.y = ResolveHiddenPivotY(hidePoint, spot);
 
-            // Opcionalmente fijar la Y en una coordenada del mundo.
-            if (useFixedWorldY)
-                targetPosition.y = fixedWorldY;
+            // Orientacion: el frente del HidePoint (forward proyectado en horizontal)
+            // en lugar de eulerAngles.y, que no es fiable si el HidePoint esta inclinado.
+            Vector3 facing = spot != null
+                ? spot.GetFacingDirection()
+                : FlattenDirection(hidePoint.forward);
 
-            // Conservar la rotacion Y del HidePoint y fijar X/Z.
-            Vector3 hideEuler = hidePoint.rotation.eulerAngles;
-            hideEuler.x = hiddenRotationX;
-            hideEuler.z = hiddenRotationZ;
+            float yaw = Mathf.Atan2(facing.x, facing.z) * Mathf.Rad2Deg;
 
-            Quaternion targetRotation = Quaternion.Euler(hideEuler);
+            Quaternion targetRotation = Quaternion.Euler(0f, yaw + bodyYawOffset, 0f);
 
             if (cameraAnimation != null)
                 StopCoroutine(cameraAnimation);
@@ -183,6 +196,52 @@ namespace StarterAssets
             cameraAnimation = StartCoroutine(
                 AnimateEnteringHideout(targetPosition, targetRotation)
             );
+        }
+
+        private float ResolveHiddenPivotY(Transform hidePoint, HideSpot spot)
+        {
+            if (!useWagonFloor)
+                return fixedWorldY;
+
+            float floorY = hidePoint.position.y;
+            bool found = false;
+
+            if (spot != null)
+                found = spot.TryGetFloorY(out floorY);
+
+            if (!found)
+            {
+                floorY = hidePoint.position.y;
+
+                Debug.LogWarning(
+                    "PlayerHide: no se detecto suelo en '" + hidePoint.name +
+                    "'. Se usa la Y del HidePoint como suelo. " +
+                    "Revisa que el HidePoint este dentro del vagon y que tenga collider."
+                );
+            }
+
+            float pivotY = floorY + pivotHeightAboveFloor;
+
+            if (debugLogs)
+            {
+                Debug.Log(
+                    "PlayerHide [" + hidePoint.name + "] suelo Y = " +
+                    floorY.ToString("F3") + " | pivote Y final = " +
+                    pivotY.ToString("F3")
+                );
+            }
+
+            return pivotY;
+        }
+
+        private static Vector3 FlattenDirection(Vector3 direction)
+        {
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.0001f)
+                return Vector3.forward;
+
+            return direction.normalized;
         }
 
         private IEnumerator AnimateEnteringHideout(
@@ -219,7 +278,7 @@ namespace StarterAssets
 
                 if (t < 0.5f)
                 {
-                    // Primera mitad: el cuerpo entra al escondite y la camara sube.
+                    // Primera mitad: el cuerpo entra al escondite y la camara sube. 
                     float enterT = Mathf.Clamp01(smoothT * 2f);
 
                     transform.position = EvaluateJumpPosition(
@@ -247,7 +306,7 @@ namespace StarterAssets
                 }
                 else
                 {
-                    // Segunda mitad: el jugador termina de acomodarse y la camara gira.
+                    // Segunda mitad: el jugador termina de acomodarse y la camara gira. 
                     float turnT = Mathf.Clamp01((t - 0.5f) * 2f);
                     turnT = turnT * turnT * (3f - 2f * turnT);
 
@@ -282,7 +341,7 @@ namespace StarterAssets
                 yield return null;
             }
 
-            // Asegurar que la posicion y rotacion finales sean exactas.
+            // Asegurar que la posicion y rotacion finales sean exactas. 
             transform.SetPositionAndRotation(targetPosition, targetRotation);
 
             if (cameraPivot != null)
@@ -299,8 +358,8 @@ namespace StarterAssets
             cameraAnimation = null;
         }
 
-        // Trayectoria curva: el jugador sube en un pequeno arco y baja
-        // hasta la posicion final, en vez de atravesar el vagon en linea recta.
+        // Trayectoria curva: el jugador sube en un pequeno arco y baja 
+        // hasta la posicion final, en vez de atravesar el vagon en linea recta. 
         private Vector3 EvaluateJumpPosition(
             Vector3 startPosition,
             Vector3 targetPosition,
@@ -325,7 +384,7 @@ namespace StarterAssets
 
             IsHidden = false;
 
-            // Regresar al lugar y orientacion previos a entrar.
+            // Regresar al lugar y orientacion previos a entrar. 
             transform.SetPositionAndRotation(exitPosition, exitRotation);
 
             if (cameraPivot != null)
@@ -336,6 +395,10 @@ namespace StarterAssets
 
             if (controller != null)
                 controller.enabled = true;
+
+            // AUDIO: detener la respiracion del escondite
+            if (movement != null)
+                movement.StopHiddenBreathing();
 
             if (movement != null)
                 movement.enabled = true;
@@ -355,8 +418,8 @@ namespace StarterAssets
 
         private IEnumerator PostHideProtectionRoutine()
         {
-            // La proteccion se activa desde que sales del escondite,
-            // y dura hasta que el Muki se aleja y pasan los segundos indicados.
+            // La proteccion se activa desde que sales del escondite, 
+            // y dura hasta que el Muki se aleja y pasan los segundos indicados. 
             IsPostHideProtected = true;
 
             if (mukiTransform != null)

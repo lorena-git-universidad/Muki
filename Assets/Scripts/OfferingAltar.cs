@@ -10,6 +10,10 @@ namespace StarterAssets
         [Header("Effect")]
         public float activeDuration = 60f;
 
+        [Header("Audio")]
+        [Tooltip("Nombre del sonido en el AudioManager.")]
+        public string offeringSoundName = "Ofrenda";
+
         [Header("State")]
         public bool isUsed = false;
         public bool isActive = false;
@@ -51,6 +55,10 @@ namespace StarterAssets
             isActive = true;
 
             remainingTime = activeDuration;
+
+            // Sonido de la ofrenda
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySound(offeringSoundName);
 
             Debug.Log(
                 "¡Altar activado! Duración: " +
