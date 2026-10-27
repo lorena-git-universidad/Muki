@@ -69,6 +69,9 @@ namespace StarterAssets
 
         private float attackTimer = 0f;
 
+        [Header("Videos de screamer")]
+        public MukiScreamerVideos screamerVideos;
+
         [Tooltip("Tiempo que dura la animación de ataque antes de reaparecer al jugador.")]
         public float attackAnimationDuration = 1.2f;
 
@@ -140,8 +143,8 @@ namespace StarterAssets
         [Header("Audio nuevo - Inicio de persecucion")]
         public string illFoundYouSoundName = "illfoundyou";
 
-        [Tooltip("Segundos minimos entre dos reproducciones de illfoundyou.")]
-        public float illFoundYouCooldown = 8f;
+        [Tooltip("Indica si illfoundyou ya se reprodujo durante esta instancia de Muki.")]
+        private bool illFoundYouPlayed = false;
 
         [Header("Audio nuevo - Pasos del Muki")]
         public string footstepsSoundName = "Pasos_Muki";
@@ -164,7 +167,6 @@ namespace StarterAssets
         [Tooltip("Tiempo maximo (s) entre sonidos ambiente.")]
         public float ambientMaxInterval = 150f;
 
-        private float lastIllFoundYouTime = -999f;
         private AudioSource footstepSource;
         private bool footstepsInitFailed = false;
         private float ambientTimer;
@@ -175,6 +177,10 @@ namespace StarterAssets
 
         private void Awake()
         {
+
+            if (screamerVideos == null)
+                screamerVideos = FindFirstObjectByType<MukiScreamerVideos>();
+
             if (agent == null)
                 agent = GetComponent<NavMeshAgent>();
 
@@ -497,6 +503,11 @@ namespace StarterAssets
 
         private void ChasePlayer()
         {
+
+            // No mover ni actualizar la persecución durante el ataque.
+            if (isPerformingAttack)
+                return;
+
             // PROTECCIÓN
             if (postKillProtectionTimer > 0f)
             {
@@ -572,86 +583,140 @@ namespace StarterAssets
         // CORRUTINA DEL ATAQUE
         // =========================================================
 
+
+
         private IEnumerator PerformAttack()
         {
             isPerformingAttack = true;
 
-            // COOLDOWN
+            // 1. Iniciar el cooldown del ataque.
             attackTimer = attackCooldown;
 
-            // DETENER A MUKI
+            // 2. Detener a Muki mientras ocurre el ataque.
             if (agent != null)
             {
                 agent.isStopped = true;
                 agent.ResetPath();
             }
 
-            // ESTADO DE PERSECUCIÓN SE MANTIENE
             currentState = EnemyState.Chasing;
 
-            // ANIMACIÓN DE ATAQUE
+            // =====================================================
+            // 3. EJECUTAR PRIMERO LA ANIMACIÓN DE ATAQUE
+            // =====================================================
+
             if (animator != null)
             {
                 animator.ResetTrigger("Attack");
                 animator.SetTrigger("Attack");
             }
 
-            Debug.Log(
-                "¡Muki atrapó al jugador! " +
-                "Reproduciendo animación de ataque."
-            );
+            Debug.Log("Muki comienza su animación de ataque.");
 
-            // ESPERAR LA ANIMACIÓN
+            // Esperar a que termine la animación.
             yield return new WaitForSeconds(attackAnimationDuration);
 
-            // REGISTRAR CAPTURA Y DESCONTAR UNA VIDA
-            if (PlayerLives.Instance != null)
+            Debug.Log("Animación terminada. Ahora comienza el screamer.");
+
+            // =====================================================
+            // 4. REPRODUCIR EL SCREAMER DESPUÉS DE LA ANIMACIÓN
+            // =====================================================
+
+            if (screamerVideos != null &&
+                screamerVideos.HasAttackScreamer)
             {
-                bool gameOver = PlayerLives.Instance.RegisterCapture();
-
-                if (gameOver)
-                {
-                    // No reaparecer si se terminaron las vidas.
-                    if (agent != null)
-                    {
-                        agent.isStopped = true;
-                        agent.ResetPath();
-                    }
-
-                    Debug.LogError(
-                        "PARTIDA TERMINADA: el jugador perdió todas sus vidas."
-                    );
-
-                    isPerformingAttack = false;
-
-                    // Detener la IA del Muki después de la derrota.
-                    enabled = false;
-
-                    yield break;
-                }
+                yield return StartCoroutine(
+                    screamerVideos.PlayAttackScreamer()
+                );
             }
             else
             {
-                Debug.LogError(
-                    "No se encontró PlayerLives. " +
-                    "Añade el componente al jugador."
+                Debug.LogWarning(
+                    "No se encontró el screamer de ataque o no está asignado."
                 );
             }
 
-            // REGRESAR AL CHECKPOINT SI AÚN TIENE VIDAS
+            // =====================================================
+            // 5. REGISTRAR LA CAPTURA Y DESCONTAR UNA VIDA
+            // =====================================================
+
+            if (PlayerLives.Instance == null)
+            {
+                Debug.LogError(
+                    "No se encontró PlayerLives. " +
+                    "Añade el componente a un objeto de la escena."
+                );
+
+                isPerformingAttack = false;
+                yield break;
+            }
+
+            bool gameOver = PlayerLives.Instance.RegisterCapture();
+
+            // =====================================================
+            // 6. SI PERDIÓ LA ÚLTIMA VIDA, MOSTRAR EL VIDEO FINAL
+            // =====================================================
+
+            if (gameOver)
+            {
+                if (agent != null)
+                {
+                    agent.isStopped = true;
+                    agent.ResetPath();
+                }
+
+                Debug.Log(
+                    "Última vida perdida. Reproduciendo el screamer final."
+                );
+
+                // Evitar que Muki siga ejecutando su IA.
+                enabled = false;
+
+                if (screamerVideos != null &&
+                    screamerVideos.HasFinalDeathScreamer)
+                {
+                    yield return StartCoroutine(
+                        screamerVideos.PlayFinalDeathScreamer()
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        "No hay screamer final asignado. " +
+                        "Se utilizará el tiempo de espera habitual."
+                    );
+
+                    yield return new WaitForSecondsRealtime(
+                        PlayerLives.Instance.defeatDelay
+                    );
+                }
+
+                // Cargar Derrota después de terminar el video final.
+                PlayerLives.Instance.LoadDefeatSceneNow();
+                yield break;
+            }
+
+            // =====================================================
+            // 7. SI QUEDAN VIDAS, REAPARECER EN EL CHECKPOINT
+            // =====================================================
+
             if (PlayerRespawn.Instance != null)
             {
                 PlayerRespawn.Instance.Respawn();
             }
             else
             {
-                Debug.LogWarning("No existe PlayerRespawn.Instance.");
+                Debug.LogWarning(
+                    "No existe PlayerRespawn.Instance."
+                );
             }
 
-            // ACTIVAR PROTECCIÓN
+            // =====================================================
+            // 8. ACTIVAR PROTECCIÓN Y ALEJAR A MUKI
+            // =====================================================
+
             postKillProtectionTimer = postKillProtectionTime;
 
-            // LIMPIAR ESTADO ANTERIOR
             investigatingNoise = false;
             noisePatrolPoint = null;
             waitingAtNoisePoint = false;
@@ -659,10 +724,8 @@ namespace StarterAssets
             calmPatrolTarget = null;
             patrolTimer = 0f;
 
-            // BUSCAR PUNTO LEJANO
             Transform safePatrolPoint = GetSafePostKillPatrolPoint();
 
-            // MOVER A MUKI
             if (safePatrolPoint != null)
             {
                 MoveMukiToPatrolPoint(safePatrolPoint);
@@ -670,20 +733,26 @@ namespace StarterAssets
             else
             {
                 currentState = EnemyState.Patrolling;
-                agent.speed = patrolSpeed;
-                agent.isStopped = false;
+
+                if (agent != null)
+                {
+                    agent.speed = patrolSpeed;
+                    agent.isStopped = false;
+                }
+
                 GoToNextPatrolPoint();
             }
 
             isPerformingAttack = false;
 
             Debug.Log(
-                "Muki se alejó después de matar al jugador. " +
-                "No podrá detectarlo durante " +
-                postKillProtectionTime +
-                " segundos."
+                "Muki se alejó después de la captura. " +
+                "Protección activa durante " +
+                postKillProtectionTime + " segundos."
             );
         }
+
+
 
         // =========================================================
         // MOVER MUKI A UN PUNTO LEJANO
@@ -1220,12 +1289,13 @@ namespace StarterAssets
             // PERSECUCIÓN
             else if (currentState == EnemyState.Chasing)
             {
-                // AUDIO NUEVO: "illfoundyou" una sola vez al empezar la persecucion
-                if (AudioManager.Instance != null &&
-                    Time.time - lastIllFoundYouTime >= illFoundYouCooldown)
+                // AUDIO NUEVO: reproducir "illfoundyou" una sola vez
+                // durante esta instancia de Muki, aunque vuelva a perseguir.
+                if (!illFoundYouPlayed && AudioManager.Instance != null)
                 {
                     AudioManager.Instance.PlaySound(illFoundYouSoundName);
-                    lastIllFoundYouTime = Time.time;
+                    illFoundYouPlayed = true;
+                    Debug.Log("Muki: el sonido illfoundyou ya se reprodujo y no volverá a sonar.");
                 }
 
                 if (chaseLaughSound != null)

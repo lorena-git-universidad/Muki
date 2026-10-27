@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace StarterAssets
 {
@@ -13,6 +14,8 @@ namespace StarterAssets
 
         [Header("Escena de derrota")]
         public string defeatSceneName = "Derrota";
+
+        [Tooltip("Espera alternativa si no hay video final asignado.")]
         public float defeatDelay = 1.5f;
 
         public int CurrentLives { get; private set; }
@@ -23,7 +26,7 @@ namespace StarterAssets
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(this);
+                Destroy(gameObject);
                 return;
             }
 
@@ -56,24 +59,36 @@ namespace StarterAssets
                 IsGameOver = true;
 
                 Debug.LogError(
-                    "DERROTA: el Muki atrapó al jugador tres veces."
+                    "DERROTA: el Muki atrapó al jugador por última vez."
                 );
 
-                // Deja ver un instante el final y pasa a la escena de derrota.
-                Invoke(nameof(LoadDefeatScene), defeatDelay);
-
+                // No cambiar de escena todavía.
+                // MukiEnemy reproducirá el video final primero.
                 return true;
             }
 
             return false;
         }
 
-        private void LoadDefeatScene()
+        public void LoadDefeatSceneNow()
         {
             if (Application.CanStreamedLevelBeLoaded(defeatSceneName))
-                UnityEngine.SceneManagement.SceneManager.LoadScene(defeatSceneName);
+            {
+                SceneManager.LoadScene(defeatSceneName);
+            }
             else
-                Debug.LogError("No se encontro la escena " + defeatSceneName + ". Agregala a Build Settings.");
+            {
+                Debug.LogError(
+                    "No se encontró la escena " + defeatSceneName +
+                    ". Agrégala a Build Profiles / Build Settings."
+                );
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
         }
     }
 }
