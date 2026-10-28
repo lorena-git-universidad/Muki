@@ -1,137 +1,152 @@
 
+using StarterAssets;
 using UnityEngine;
 
-namespace StarterAssets
+public class MineScreamerTrigger : MonoBehaviour
 {
-    public class MineScreamerTrigger : MonoBehaviour
+    [Header("Probabilidad del evento")]
+    [Range(0f, 1f)]
+    public float activationChance = 0.15f;
+
+    [Header("Punto de aparición")]
+    public Transform spawnPoint;
+
+    [Header("Animaciones del Muki")]
+    public TipoAnimacionMuki tipoAnimacion;
+
+    public AnimationClip asomada;
+    public AnimationClip correteada;
+    public AnimationClip mukisusto;
+
+    [Header("Objeto que aparecerá")]
+    public GameObject apparition;
+
+    [Header("Sonido del evento")]
+    public AudioClip eventSound;
+
+    [Header("Duración del evento")]
+    [Min(0.1f)]
+    public float eventDuration = 1.2f;
+
+    private bool triggerConsumed;
+
+    public enum TipoAnimacionMuki
     {
-        [Header("Probabilidad")]
-        [Range(0f, 1f)]
-        public float activationChance = 0.15f;
+        Asomada,
+        Correteada,
+        MukiSusto
+    }
 
-        [Header("Punto de aparición")]
-        [Tooltip("Transform que determina dónde y cómo aparece el susto.")]
-        public Transform spawnPoint;
-
-        [Header("Imagen provisional")]
-        public Sprite eventImage;
-
-        [Header("Aparición opcional")]
-        [Tooltip("Modelo visual independiente, inicialmente desactivado.")]
-        public GameObject apparition;
-
-        [Header("Sonido")]
-        public AudioClip eventSound;
-
-        [Header("Duración")]
-        [Min(0.1f)]
-        public float eventDuration = 1.2f;
-
-        private bool hasAttempted;
-
-        private void Start()
+    private void Awake()
+    {
+        // La aparición debe permanecer oculta hasta que ocurra el evento.
+        if (apparition != null)
         {
-            if (apparition != null)
-                apparition.SetActive(false);
+            apparition.SetActive(false);
         }
+    }
 
-        private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
+    {
+        if (triggerConsumed)
+            return;
+
+        // Identifica al jugador mediante su componente PlayerRespawn.
+        PlayerRespawn player = other.GetComponentInParent<PlayerRespawn>();
+
+        if (player == null)
+            return;
+
+        MineScreamerManager manager = MineScreamerManager.Instance;
+
+        if (manager == null)
         {
-            if (hasAttempted)
-                return;
-
-            PlayerRespawn playerRespawn =
-                other.GetComponentInParent<PlayerRespawn>();
-
-            if (playerRespawn == null)
-                return;
-
-            Transform playerTransform = playerRespawn.transform;
-
-            MineScreamerManager manager =
-                MineScreamerManager.Instance;
-
-            if (manager == null)
-            {
-                Debug.LogError(
-                    "No existe MineScreamerManager en la escena."
-                );
-
-                return;
-            }
-
-            // Si el Muki está cerca o hay otro susto activo,
-            // no consumimos todavía el punto.
-            if (!manager.CanPlayEvent(playerTransform))
-                return;
-
-            if (spawnPoint == null)
-            {
-                Debug.LogError(
-                    "Asigna un Spawn Point a " + gameObject.name
-                );
-
-                return;
-            }
-
-            // Un solo intento de probabilidad por punto.
-            if (Random.value > activationChance)
-            {
-                hasAttempted = true;
-
-                Debug.Log(
-                    "El evento no ocurrió. Punto consumido: " +
-                    gameObject.name
-                );
-
-                Destroy(gameObject);
-                return;
-            }
-
-            bool started = manager.TryPlayEvent(
-                playerTransform,
-                spawnPoint,
-                eventImage,
-                apparition,
-                eventSound,
-                eventDuration
+            Debug.LogWarning(
+                "MineScreamerTrigger: no se encontró MineScreamerManager en la escena.",
+                this
             );
-
-            if (started)
-            {
-                hasAttempted = true;
-
-                Debug.Log(
-                    "Evento activado: " + gameObject.name
-                );
-
-                Destroy(gameObject);
-            }
+            return;
         }
 
-        private void OnDrawGizmos()
+        Transform playerTransform = player.transform;
+
+        // Primero verifica que el Muki esté suficientemente lejos
+        // y que no haya otro evento activo.
+        // Si no se cumple, no consume el trigger ni calcula la probabilidad.
+        if (!manager.CanPlayEvent(playerTransform))
+            return;
+
+        // Solo se calcula la probabilidad cuando las condiciones son válidas.
+        if (Random.value > activationChance)
         {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawWireSphere(transform.position, 0.5f);
+            // Este trigger ya tuvo su oportunidad y no activó el evento.
+            triggerConsumed = true;
+            Destroy(gameObject);
+            return;
+        }
 
-            if (spawnPoint != null)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawLine(
-                    transform.position,
-                    spawnPoint.position
-                );
+        AnimationClip selectedClip = GetSelectedAnimation();
 
-                Gizmos.DrawWireSphere(
-                    spawnPoint.position,
-                    0.25f
-                );
+        if (spawnPoint == null)
+        {
+            Debug.LogWarning(
+                "MineScreamerTrigger: falta asignar el Spawn Point.",
+                this
+            );
+            return;
+        }
 
-                Gizmos.DrawRay(
-                    spawnPoint.position,
-                    spawnPoint.forward * 1.5f
-                );
-            }
+        if (apparition == null)
+        {
+            Debug.LogWarning(
+                "MineScreamerTrigger: falta asignar el objeto Apparition.",
+                this
+            );
+            return;
+        }
+
+        if (selectedClip == null)
+        {
+            Debug.LogWarning(
+                "MineScreamerTrigger: la animación seleccionada no está asignada.",
+                this
+            );
+            return;
+        }
+
+        // El manager vuelve a comprobar las condiciones antes de iniciar.
+        bool eventStarted = manager.TryPlayEvent(
+            playerTransform,
+            spawnPoint,
+            selectedClip,
+            apparition,
+            null,
+            eventSound,
+            eventDuration
+        );
+
+        if (eventStarted)
+        {
+            triggerConsumed = true;
+            Destroy(gameObject);
+        }
+    }
+
+    private AnimationClip GetSelectedAnimation()
+    {
+        switch (tipoAnimacion)
+        {
+            case TipoAnimacionMuki.Asomada:
+                return asomada;
+
+            case TipoAnimacionMuki.Correteada:
+                return correteada;
+
+            case TipoAnimacionMuki.MukiSusto:
+                return mukisusto;
+
+            default:
+                return null;
         }
     }
 }

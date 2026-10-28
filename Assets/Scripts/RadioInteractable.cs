@@ -11,6 +11,10 @@ namespace StarterAssets
         [Range(0f, 1f)]
         public float volume = 1f;
 
+        [Header("Distancia del jugador")]
+        public Transform player;
+        public float maxDistance = 7f;
+
         [Header("Animations")]
         public Animator radioAnimator;
         public string playingAnimation = "radioSonando";
@@ -35,9 +39,26 @@ namespace StarterAssets
 
         private void Update()
         {
+            // Si la radio está sonando, comprobar la distancia.
+            if (audioSource.isPlaying && player != null)
+            {
+                float distance = Vector3.Distance(
+                    transform.position,
+                    player.position
+                );
+
+                if (distance >= maxDistance)
+                {
+                    StopRadio();
+                    Debug.Log("Radio detenida: el jugador se alejó.");
+                    return;
+                }
+            }
+
             // Si el audio terminó, regresar a la animación idle.
             if (hasStarted &&
                 !audioSource.isPlaying &&
+                audioSource.clip != null &&
                 audioSource.time >= audioSource.clip.length)
             {
                 hasStarted = false;
@@ -52,39 +73,58 @@ namespace StarterAssets
                 Debug.LogWarning(
                     "Esta radio no tiene un audio asignado: " + name
                 );
-
                 return;
             }
 
-            // Si el audio está reproduciéndose, pausarlo.
+            // Evitar iniciar la radio si el jugador está muy lejos.
+            if (player != null &&
+                Vector3.Distance(transform.position, player.position)
+                    >= maxDistance)
+            {
+                Debug.Log("Estás demasiado lejos de la radio.");
+                return;
+            }
+
+            // Si está reproduciéndose, pausar.
             if (audioSource.isPlaying)
             {
                 audioSource.Pause();
-
                 Debug.Log("Radio pausada: " + name);
                 return;
             }
 
-            // Si ya se había iniciado, continuar desde la pausa.
-            if (hasStarted)
+            // Si estaba pausada, continuar.
+            if (hasStarted && audioSource.time > 0f)
             {
                 audioSource.UnPause();
-
+                PlayAnimation(playingAnimation);
                 Debug.Log("Radio reanudada: " + name);
                 return;
             }
 
-            // Primera reproducción o reproducción después de terminar.
+            // Primera reproducción o reproducción desde el inicio.
             audioSource.clip = radioAudio;
             audioSource.volume = volume;
             audioSource.time = 0f;
             audioSource.Play();
 
             hasStarted = true;
-
             PlayAnimation(playingAnimation);
 
             Debug.Log("Reproduciendo radio: " + name);
+        }
+
+        // Llama a este método cuando el jugador muera.
+        public void StopRadio()
+        {
+            if (audioSource != null)
+            {
+                audioSource.Stop();
+                audioSource.time = 0f;
+            }
+
+            hasStarted = false;
+            PlayAnimation(idleAnimation);
         }
 
         private void PlayAnimation(string animationName)
