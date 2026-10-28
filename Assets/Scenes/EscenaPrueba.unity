@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.83396226, g: 0.482791, b: 0.40754002, a: 1}
+  m_AmbientSkyColor: {r: 0.7283019, g: 0.6296245, b: 0.6087504, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1.65
@@ -925,7 +925,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -29.24
+      value: -30.197
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalPosition.y
@@ -933,7 +933,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.2
+      value: -1.761
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalRotation.w
@@ -3517,7 +3517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c44ef0bac70aefa42a82aefc0b6ced40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.MineScreamerTrigger
-  activationChance: 1
+  activationChance: 0.476
   spawnPoint: {fileID: 1590312312}
   tipoAnimacion: 1
   asomada: {fileID: 7400000, guid: f3854d987ea1d5b4090ea6038b92fe39, type: 2}
@@ -14317,43 +14317,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.745
+      value: 4.84
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.418
+      value: 0.494
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 28.796
+      value: 25.428
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.8772689
+      value: 0.9166741
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.036815148
+      value: 0.13045484
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.06817925
+      value: 0.32790756
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.473704
+      value: 0.18752836
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 7.423
+      value: 6.672
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 4.902
+      value: 40.884
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: -56.418
+      value: 25.613
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20128,7 +20128,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 12, y: 12}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &849691332
 MonoBehaviour:
@@ -20143,14 +20143,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.06623721, b: 1, a: 1}
+  m_Color: {r: 0.5849056, g: 0.48736522, b: 0.47564965, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 8eaca1bb01beb414fb543115e4bdb544, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -21609,6 +21609,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.RadioInteractable
   radioAudio: {fileID: 8300000, guid: 66a3ad2a080972b42905e6d4a40adb13, type: 3}
   volume: 1
+  player: {fileID: 1589027493}
+  maxDistance: 7
   radioAnimator: {fileID: 907279660}
   playingAnimation: radioSonando
   idleAnimation: radioIdle
@@ -28106,11 +28108,11 @@ Transform:
   m_GameObject: {fileID: 1140833959}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 179.95973, y: -0.00001001358, z: 3.2420032}
-  m_LocalScale: {x: 0.6309804, y: 1, z: 0.47633576}
+  m_LocalPosition: {x: 0.5565491, y: -0.4, z: -2.1944695}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1999447049}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1144482508
 PrefabInstance:
@@ -29193,7 +29195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c44ef0bac70aefa42a82aefc0b6ced40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.MineScreamerTrigger
-  activationChance: 1
+  activationChance: 0.34
   spawnPoint: {fileID: 885543619}
   tipoAnimacion: 0
   asomada: {fileID: 7400000, guid: f3854d987ea1d5b4090ea6038b92fe39, type: 2}
@@ -31179,19 +31181,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 14.663997
+      value: 17.25
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.1539841
+      value: 0.57
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 20.84
+      value: 18.878
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.99063635
+      value: 0.9953027
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalRotation.x
@@ -31203,7 +31205,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.13652743
+      value: 0.09681241
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -31215,7 +31217,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3074225551225941393, guid: 93e8990090ab55c4a8bc02d3b5db1076, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: -15.694
+      value: 11.111
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -39526,6 +39528,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.RadioInteractable
   radioAudio: {fileID: 8300000, guid: f03e1031835563649812fc061f9d6258, type: 3}
   volume: 1
+  player: {fileID: 1589027493}
+  maxDistance: 7
   radioAnimator: {fileID: 1553997203}
   playingAnimation: radioSonando
   idleAnimation: radioIdle
@@ -40290,6 +40294,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.RadioInteractable
   radioAudio: {fileID: 8300000, guid: 3788c8d21fb956a4a8cb9bb406afeb33, type: 3}
   volume: 1
+  player: {fileID: 1589027493}
+  maxDistance: 7
   radioAnimator: {fileID: 1567665864}
   playingAnimation: radioSonando
   idleAnimation: radioIdle
@@ -42519,7 +42525,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -22.67
+      value: -22.392
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalPosition.y
@@ -42527,11 +42533,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6.856
+      value: 10.252
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7746474
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalRotation.x
@@ -42539,7 +42545,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0.6323934
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalRotation.z
@@ -42551,7 +42557,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 78.454
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -48517,7 +48523,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.4
+      value: 0.97
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalPosition.y
@@ -48525,7 +48531,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 7.285
+      value: 5.085
       objectReference: {fileID: 0}
     - target: {fileID: 6832232780707186672, guid: 45431a8f1fa31034894eb38a84d2c912, type: 3}
       propertyPath: m_LocalRotation.w
@@ -51739,7 +51745,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 22.512
+      value: 22.753
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalPosition.y
@@ -51747,7 +51753,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4.597
+      value: -5.393
       objectReference: {fileID: 0}
     - target: {fileID: 6126034781167111345, guid: 4304fc10b0b6c56428e626b5bcfad845, type: 3}
       propertyPath: m_LocalRotation.w
@@ -53501,7 +53507,6 @@ Transform:
   - {fileID: 1122091320}
   - {fileID: 32738493}
   - {fileID: 1925304767}
-  - {fileID: 1140833961}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2000775275
@@ -55403,6 +55408,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.RadioInteractable
   radioAudio: {fileID: 8300000, guid: ca688d5e4734da24fab7b9745964cd2d, type: 3}
   volume: 1
+  player: {fileID: 1589027493}
+  maxDistance: 7
   radioAnimator: {fileID: 2049480096}
   playingAnimation: radioSonando
   idleAnimation: radioIdle
@@ -56856,6 +56863,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.RadioInteractable
   radioAudio: {fileID: 8300000, guid: c9b1ee9489ae3bb4e96856e3f5f03ae6, type: 3}
   volume: 1
+  player: {fileID: 1589027493}
+  maxDistance: 7
   radioAnimator: {fileID: 2115656032}
   playingAnimation: radioSonando
   idleAnimation: radioIdle
@@ -58458,6 +58467,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2183717676814917581, guid: 4496b8290ab1a074f94b47681b26bf92, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2525662007637093263, guid: 7d66af676fc50fb4098d7aae3f927cdc, type: 3}
     - target: {fileID: 3746044017156995252, guid: 4496b8290ab1a074f94b47681b26bf92, type: 3}
       propertyPath: m_LocalPosition.x
       value: -235.4
@@ -60388,6 +60401,7 @@ SceneRoots:
   - {fileID: 748711428}
   - {fileID: 647326163}
   - {fileID: 1999447049}
+  - {fileID: 1140833961}
   - {fileID: 2062481806}
   - {fileID: 1465089896}
   - {fileID: 2142398410}

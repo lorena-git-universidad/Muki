@@ -49,6 +49,8 @@ namespace StarterAssets
 
             CurrentLives = Mathf.Max(0, CurrentLives - 1);
 
+            StopAllRadios();
+
             Debug.Log(
                 "¡El Muki atrapó al jugador! Vidas restantes: " +
                 CurrentLives + "/" + startingLives
@@ -69,6 +71,24 @@ namespace StarterAssets
 
             return false;
         }
+
+
+        public void StopAllRadios()
+        {
+            RadioInteractable[] radios =
+                FindObjectsByType<RadioInteractable>(
+                    FindObjectsSortMode.None
+                );
+
+            foreach (RadioInteractable radio in radios)
+            {
+                if (radio != null)
+                    radio.StopRadio();
+            }
+
+            Debug.Log("Radios detenidas por la muerte del jugador.");
+        }
+
 
         public void LoadDefeatSceneNow()
         {
