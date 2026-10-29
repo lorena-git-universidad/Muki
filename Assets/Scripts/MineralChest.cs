@@ -119,9 +119,12 @@ namespace StarterAssets
                 ItemData mineral = inventoryItem.item;
 
                 int spaceAvailable = maxMinerals - currentMinerals;
+                // Solo se acepta lo que falta para el objetivo de ese mineral: asi el cofre
+                // nunca se llena de un solo tipo y la salida siempre se puede desbloquear.
                 int amountToDeposit = Mathf.Min(
                     inventoryItem.amount,
-                    spaceAvailable
+                    spaceAvailable,
+                    AmountStillNeeded(mineral)
                 );
 
                 if (amountToDeposit <= 0)
@@ -187,6 +190,41 @@ namespace StarterAssets
             return 0;
         }
 
+        // Cantidad que el objetivo de victoria pide de este mineral (0 si no es un requisito).
+        private int RequiredAmountOf(ItemData item)
+        {
+            GameVictoryManager victory = GameVictoryManager.Instance;
+
+            if (victory == null || victory.requirements == null)
+                return 0;
+
+            foreach (MineralRequirement requirement in victory.requirements)
+            {
+                if (requirement != null && requirement.item == item)
+                    return requirement.requiredAmount;
+            }
+
+            return 0;
+        }
+
+        // Cuantas unidades de este mineral aun puede aceptar el cofre.
+        private int AmountStillNeeded(ItemData item)
+        {
+            GameVictoryManager victory = GameVictoryManager.Instance;
+
+            // Sin objetivo configurado se mantiene el comportamiento anterior.
+            if (victory == null || victory.requirements == null || victory.requirements.Count == 0)
+                return int.MaxValue;
+
+            return Mathf.Max(0, RequiredAmountOf(item) - GetAmountOf(item));
+        }
+
+        private string RequiredSuffix(ItemData item)
+        {
+            int required = RequiredAmountOf(item);
+            return required > 0 ? "/" + required : string.Empty;
+        }
+
         private void RecalculateTotal()
         {
             currentMinerals = 0;
@@ -215,7 +253,7 @@ namespace StarterAssets
                     continue;
 
                 text.AppendLine(
-                    stack.item.itemName + ": " + stack.amount
+                    stack.item.itemName + ": " + stack.amount + RequiredSuffix(stack.item)
                 );
             }
 

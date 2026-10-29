@@ -39,6 +39,7 @@ namespace StarterAssets
         public TMP_Text objectiveProgressText;
 
         private bool isOpen;
+        private MineralChest chest;
 
         // =========================================================
         // START
@@ -140,7 +141,9 @@ namespace StarterAssets
                 if (entry.itemData == null)
                     continue;
 
-                int amount = GetInventoryAmount(entry.itemData);
+                // Cuenta lo que lleva el jugador MAS lo ya guardado en el cofre: al depositar,
+                // el mineral no debe desaparecer del panel.
+                int amount = GetInventoryAmount(entry.itemData) + GetChestAmount(entry.itemData);
 
                 bool unlocked = amount > 0;
 
@@ -217,13 +220,34 @@ namespace StarterAssets
             if (objectiveProgressText != null)
             {
                 objectiveProgressText.text =
-                    discovered + " / 3 minerales descubiertos";
+                    discovered + " / " + CountEntries() + " minerales descubiertos";
             }
         }
 
         // =========================================================
         // GET INVENTORY AMOUNT
         // =========================================================
+
+        private int GetChestAmount(ItemData item)
+        {
+            if (chest == null)
+                chest = FindFirstObjectByType<MineralChest>();
+
+            return chest != null ? chest.GetAmountOf(item) : 0;
+        }
+
+        private int CountEntries()
+        {
+            int count = 0;
+
+            foreach (MineralEntry entry in mineralEntries)
+            {
+                if (entry != null && entry.itemData != null)
+                    count++;
+            }
+
+            return count;
+        }
 
         private int GetInventoryAmount(ItemData item)
         {

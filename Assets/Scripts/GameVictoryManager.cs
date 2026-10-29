@@ -140,6 +140,10 @@ namespace StarterAssets
                 blockingRock.SetActive(false);
 
             Debug.Log("¡Se cumplieron los requisitos! La salida está desbloqueada.");
+
+            // Al abrirse la salida (la roca se destruye) la victoria es inmediata: no hay que
+            // cruzar ningun trigger. loadDelay da un instante para ver desaparecer la roca.
+            WinGame();
         }
 
         public void WinGame()

@@ -786,8 +786,6 @@ MonoBehaviour:
   normalBorder: {r: 0.443, g: 0.286, b: 0.122, a: 1}
   hoverBorder: {r: 0.925, g: 0.733, b: 0.282, a: 1}
   transitionSpeed: 14
-  playClickSound: 1
-  clickVolume: 1
 --- !u!114 &25658000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7509,8 +7507,6 @@ MonoBehaviour:
   normalBorder: {r: 0.443, g: 0.286, b: 0.122, a: 1}
   hoverBorder: {r: 0.925, g: 0.733, b: 0.282, a: 1}
   transitionSpeed: 14
-  playClickSound: 1
-  clickVolume: 1
 --- !u!114 &279048295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15711,8 +15707,6 @@ MonoBehaviour:
   normalBorder: {r: 0.443, g: 0.286, b: 0.122, a: 1}
   hoverBorder: {r: 0.925, g: 0.733, b: 0.282, a: 1}
   transitionSpeed: 14
-  playClickSound: 1
-  clickVolume: 1
 --- !u!114 &613380166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16037,7 +16031,7 @@ MonoBehaviour:
   - {fileID: 2063658159}
   - {fileID: 1365836084}
   fullHeart: {fileID: 21300000, guid: fb16f8570dd306048ae12254b67a58b9, type: 3}
-  lostHeart: {fileID: 21300000, guid: e14e7686397e38b4da7b4a4205015f64, type: 3}
+  fadeOutDuration: 0.3
   shakeDuration: 0.55
   shakeDistance: 7
   shakeAngle: 9
@@ -32198,8 +32192,6 @@ MonoBehaviour:
   normalBorder: {r: 0.443, g: 0.286, b: 0.122, a: 1}
   hoverBorder: {r: 0.925, g: 0.733, b: 0.282, a: 1}
   transitionSpeed: 14
-  playClickSound: 1
-  clickVolume: 1
 --- !u!114 &1260060296
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35491,6 +35483,10 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: c3ffbbccc29cd4642b770401a56b3139, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: c3ffbbccc29cd4642b770401a56b3139, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: c3ffbbccc29cd4642b770401a56b3139, type: 3}
       propertyPath: m_Name
@@ -53654,8 +53650,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.02093158, y: 0.016751181, z: 0.0141883325}
-  m_Center: {x: 0.00023018528, y: -0.00017175318, z: -0.00048212765}
+  m_Size: {x: 0.020931628, y: 0.013401547, z: 0.0141883325}
+  m_Center: {x: 0.00023018535, y: 0.0015030603, z: -0.00048212748}
 --- !u!1 &1993934797
 GameObject:
   m_ObjectHideFlags: 0
@@ -56348,8 +56344,6 @@ MonoBehaviour:
   normalBorder: {r: 0.443, g: 0.286, b: 0.122, a: 1}
   hoverBorder: {r: 0.925, g: 0.733, b: 0.282, a: 1}
   transitionSpeed: 14
-  playClickSound: 1
-  clickVolume: 1
 --- !u!114 &2078778440
 MonoBehaviour:
   m_ObjectHideFlags: 0
