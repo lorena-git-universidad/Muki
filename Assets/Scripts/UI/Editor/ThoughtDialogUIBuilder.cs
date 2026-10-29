@@ -200,6 +200,49 @@ namespace Muki.UI.Editor
             Debug.Log($"Capa de interacción corregida en {fixedCount} collider(s) de radios (capa {LayerMask.LayerToName(targetLayer)}).");
         }
 
+        /// <summary>
+        /// Pone en cada radio la expresión del minero de su noticia (Noticia1..5 → Minero_Noticia1..5).
+        /// Solo toca el sprite de cada pensamiento: los textos quedan como estén.
+        /// </summary>
+        [MenuItem("Muki/UI/Asignar expresiones del minero")]
+        public static void AssignExpressions()
+        {
+            int assigned = 0;
+
+            foreach (var radio in Object.FindObjectsByType<StarterAssets.RadioInteractable>(FindObjectsSortMode.None))
+            {
+                if (radio.radioAudio == null) continue;
+
+                Match m = Regex.Match(radio.radioAudio.name, @"Noticia\s*(\d+)", RegexOptions.IgnoreCase);
+                if (!m.Success) continue;
+                int news = int.Parse(m.Groups[1].Value);
+
+                var trigger = radio.GetComponent<RadioThoughtTrigger>();
+                if (trigger == null) continue;
+
+                string path = $"Assets/UI/Expresiones/Minero_Noticia{news}.png";
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (sprite == null)
+                {
+                    Debug.LogWarning("Muki: no se encontró " + path);
+                    continue;
+                }
+
+                SerializedObject so = new SerializedObject(trigger);
+                SerializedProperty list = so.FindProperty("thoughts");
+                for (int i = 0; i < list.arraySize; i++)
+                    list.GetArrayElementAtIndex(i).FindPropertyRelative("expression").objectReferenceValue = sprite;
+                so.ApplyModifiedProperties();
+                assigned++;
+            }
+
+            if (assigned > 0)
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+
+            Debug.Log($"Expresiones asignadas a {assigned} radio(s).");
+        }
+
         [MenuItem("Muki/UI/Asignar pensamientos a las radios")]
         public static void AssignToRadios()
         {
